@@ -148,6 +148,7 @@ variantRegionCheckSmall currentvariant allregions windowsize =
 --of the genes TSS.
 variantRegionCheck :: [Variants] -> [BioMartRegion] -> Int -> [[(Variants,BioMartRegion,Char)]]
 variantRegionCheck _                               []         _          = []
+variantRegionCheck []                              (_:_)      _          = []
 variantRegionCheck (currentvariant:restofvariants) allregions windowsize =
   [variantRegionCheckSmall currentvariant allregions windowsize]
   DL.++ (variantRegionCheck restofvariants allregions windowsize)
@@ -180,7 +181,7 @@ convertToListWithinTSS :: [(Variants,BioMartRegion,Char)] -> [String]
 convertToListWithinTSS [] = []
 convertToListWithinTSS xs = 
   DL.concat (DL.concat
-            (DL.map (\(a,b,c) -> [[DL.intercalate ":" allvariantinfo] DL.++
+            (DL.map (\(_,_,c) -> [[DL.intercalate ":" allvariantinfo] DL.++
                                  [DL.intercalate ":" allregioninfo]  DL.++
                                  [[c]]])
   xs))
@@ -285,7 +286,7 @@ grabFastaSequence config currentregion = do
                              inputfastafile
   --Walk through cases of pfastafile.
   case pfastafile of
-    Left err     -> return $ Left () 
+    Left  _      -> return $ Left () 
     Right cfasta -> return $ Right (smallGrabFastaSequence currentregion
                                                            cfasta) 
 
@@ -321,31 +322,30 @@ subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) cur
   let Right finalfastafile = fastaseq
   if | DE.isRight fastaseq
      -> if | DMaybe.isJust tsswinsize
-           -> do return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
-                                          (grabRegionSequence
-                                          finalfastafile
-                                          currentregion
-                                          (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))]
+           -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
+                                               (grabRegionSequence
+                                               finalfastafile
+                                               currentregion
+                                               (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))]
                  subStrLocationsSmallForward config
                                              restofmappedambstrs
                                              currentregion
            | otherwise
-           -> do return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
-                                          (grabRegionSequence
-                                          finalfastafile
-                                          currentregion
-                                          2000)]
+           -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
+                                               (grabRegionSequence
+                                               finalfastafile
+                                               currentregion
+                                               2000)]
                  subStrLocationsSmallForward config
                                              restofmappedambstrs
                                              currentregion
      | otherwise
-     -> do return $ [[]]
+     -> do _ <- return $ [[]]
            subStrLocationsSmallForward config 
                                        restofmappedambstrs
                                        currentregion
     where
-      tsswinsize       = tsswindowsize config
-      currentregionchr = rchromosome currentregion
+      tsswinsize       = tsswindowsize config 
 
 --subStrLocationsSmallReverse -> This function will
 --find the locations for all given substrings
@@ -358,39 +358,38 @@ subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) cur
   let Right finalfastafile = fastaseq
   if | DE.isRight fastaseq
      -> if | DMaybe.isJust tsswinsize
-           -> do return $ [DL.map (\a -> (DBC.length
-                                         ((grabRegionSequence finalfastafile
-                                                              currentregion
-                                                              (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)))) - a - 1)
-                                         (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                         (reverseComplementNucleotide
-                                         (grabRegionSequence finalfastafile
-                                                             currentregion
-                                                             (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))))]
+           -> do _ <- return $ [DL.map (\a -> (DBC.length
+                                              ((grabRegionSequence finalfastafile
+                                                                   currentregion
+                                                                   (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)))) - a - 1)
+                                              (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                              (reverseComplementNucleotide
+                                              (grabRegionSequence finalfastafile
+                                                                  currentregion
+                                                                  (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))))]
                  subStrLocationsSmallReverse config
                                              restofmappedambstrs
                                              currentregion
            | otherwise
-           -> do return $ [DL.map (\a -> (DBC.length
-                                         ((grabRegionSequence finalfastafile
-                                                              currentregion
-                                                              2000))) - a - 1)
-                                         (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                         (reverseComplementNucleotide
-                                         (grabRegionSequence finalfastafile
-                                                             currentregion
-                                                             2000)))]
+           -> do _ <- return $ [DL.map (\a -> (DBC.length
+                                              ((grabRegionSequence finalfastafile
+                                                                   currentregion
+                                                                   2000))) - a - 1)
+                                              (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                              (reverseComplementNucleotide
+                                              (grabRegionSequence finalfastafile
+                                                                  currentregion
+                                                                  2000)))]
                  subStrLocationsSmallReverse config
                                              restofmappedambstrs
                                              currentregion
      | otherwise
-     -> do return $ [[]]
+     -> do _ <- return $ [[]]
            subStrLocationsSmallReverse config
                                        restofmappedambstrs
                                        currentregion
     where
-      tsswinsize       = tsswindowsize config
-      currentregionchr = rchromosome currentregion
+      tsswinsize       = tsswindowsize config 
 
 --subStrLocations -> This function will
 --find the locations for all given substrings
@@ -445,6 +444,9 @@ ambiguityCodesWithinRegionCheckSmall :: FRIConfig -> (String,String) -> [(String
 ambiguityCodesWithinRegionCheckSmall _      ([],[])                                        []                     _                             = return []
 ambiguityCodesWithinRegionCheckSmall _      _                                              []                     _                             = return []
 ambiguityCodesWithinRegionCheckSmall _      ([],[])                                        _                      _                             = return []
+ambiguityCodesWithinRegionCheckSmall _      ((_:_),[])                                     (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall _      ((_:_),(_:_))                                  (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall _      ([],(_:_))                                     (_:_)                  []                            = return []
 ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,currentstrand) allmappedambiguitystrs (currentregion:restofregions) = do
   if | (ignorestrandedness config) == False
      -> if | currentregionstrand == currentstrand
@@ -453,11 +455,11 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                  substrlocs <- subStrLocations config
                                                (DL.map (fst) allmappedambiguitystrs)
                                                currentregion
-                 return $ [( currentambcode
-                          , DL.map (fst) allmappedambiguitystrs
-                          , allcurrentregiondata
-                          , substrlocs
-                          )]
+                 _ <- return $ [( currentambcode
+                                , DL.map (fst) allmappedambiguitystrs
+                                , allcurrentregiondata
+                                , substrlocs
+                               )]
                  ambiguityCodesWithinRegionCheckSmall config
                                                       currentambtuple
                                                       allmappedambiguitystrs
@@ -476,11 +478,11 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
            substrlocs <- subStrLocations config
                                          (DL.map (fst) allmappedambiguitystrs)
                                          currentregion
-           return $ [( currentambcode
-                    , DL.map (fst) allmappedambiguitystrs
-                    , allcurrentregiondata
-                    , substrlocs
-                    )]
+           _ <- return $ [( currentambcode
+                         , DL.map (fst) allmappedambiguitystrs
+                         , allcurrentregiondata
+                         , substrlocs
+                         )]
            ambiguityCodesWithinRegionCheckSmall config
                                                 currentambtuple
                                                 allmappedambiguitystrs
@@ -509,7 +511,7 @@ ambiguityCodesWithinRegionCheck config (currentambcode:restofambcodes) (currentm
                                                                     currentambcode
                                                                     currentmappedambiguitystrgroup
                                                                     allregions
-  return $ [ambcodeswithinregioncheck]
+  _ <- return $ [ambcodeswithinregioncheck]
   ambiguityCodesWithinRegionCheck config
                                   restofambcodes
                                   restofmappedambiguitystrgroups
@@ -692,8 +694,8 @@ prepareAmbiguityCodesWithinTSS (x:xs) =
 --check whether the variant in question lies within an
 --ambiguity code sequence.
 variantsAmbiguityCodesCheckerSmaller :: (Variants,BioMartRegion,Char) -> [String] -> Int -> [String]
-variantsAmbiguityCodesCheckerSmaller _                                               []     _ = []
-variantsAmbiguityCodesCheckerSmaller xs@(currentvariant,currentregion,withintssbool) (y:ys) z =
+variantsAmbiguityCodesCheckerSmaller _                                   []     _ = []
+variantsAmbiguityCodesCheckerSmaller xs@(currentvariant,currentregion,_) (y:ys) z =
   --TSS reads in reverse direction (-1).
   if | currentregionstrand == "-1"
      -> if | (read y :: Int) >= (read currentvariantstartpos :: Int) &&
@@ -759,10 +761,10 @@ variantsAmbiguityCodesChecker xs     (y:ys) =
 --variantsWithinAmbiguityCodesAndTSSSmall -> This function will
 --grab all filtered ambiguity codes for matching genes.
 variantsWithinAmbiguityCodesAndTSSSmall :: [(Variants,BioMartRegion,Char)] -> [[[String]]] -> [[String]]
-variantsWithinAmbiguityCodesAndTSSSmall []     [] = []
-variantsWithinAmbiguityCodesAndTSSSmall _      [] = []
-variantsWithinAmbiguityCodesAndTSSSmall []     _  = []
-variantsWithinAmbiguityCodesAndTSSSmall (x@(currentvariant,currentregion,withintssbool):xs) ys =
+variantsWithinAmbiguityCodesAndTSSSmall []                          [] = []
+variantsWithinAmbiguityCodesAndTSSSmall _                           [] = []
+variantsWithinAmbiguityCodesAndTSSSmall []                          _  = []
+variantsWithinAmbiguityCodesAndTSSSmall (x@(currentvariant,_,_):xs) ys =
   (variantsAmbiguityCodesChecker x ambiguitycodesregionsfiltered)
   DL.++ (variantsWithinAmbiguityCodesAndTSSSmall xs ys)
     where
