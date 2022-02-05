@@ -81,7 +81,7 @@ parseVariants v = Variants
   <*> v .: "Chromosome"
   <*> v .: "Start_Position"
   <*> v .: "End_Position"
-  <*> v .: "Refernce_Allele"
+  <*> v .: "Reference_Allele"
   <*> v .: "Alternate_Allele"
   <*> v .: "ENST"
 
