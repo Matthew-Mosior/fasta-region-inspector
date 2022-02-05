@@ -69,7 +69,7 @@ parseFRIConfig v = FRIConfig
   <*> v .:  "Ambiguity_Codes"
   <*> v .:  "Output_Directory"
   <*> v .:? "TSS_Window_Size"
-  <*> v .:  "Ignore_Strandness"
+  <*> v .:  "Ignore_Strandedness"
 
 instance FromJSON Variants where
   parseJSON (Object v) = parseVariants v
