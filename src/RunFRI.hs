@@ -125,8 +125,8 @@ processConfigurationYaml config = do
 
 
 runFastaRegionInspector :: ([Flag],[String]) -> IO ()
-runFastaRegionInspector ([],[]) = return ()
-runFastaRegionInspector (options,inputfiles) = do
+runFastaRegionInspector ([],[])        = return ()
+runFastaRegionInspector (_,inputfiles) = do
   --Print out Fasta Region Inspector ascii art.
   SIO.putStrLn fri3DMacroFont
   --Read in configuration YAML.
