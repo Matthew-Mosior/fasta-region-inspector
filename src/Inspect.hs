@@ -148,12 +148,18 @@ fastaRegionInspect config = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
                          ++ "Preparing to print output CSV files ...")
-  let finalprintreadywithintss = [["Variant"
+  let finalprintreadywithintss = printreadywithintss
+                                 `CD.deepseq`
+                                 [["Variant"
                                   ,"Region"
                                   ,"Variant_Within_Region"]] 
                                  ++ printreadywithintss
-  let withintsscsv = toCSV finalprintreadywithintss
-  let finalprintreadyambiguitycodeswithintss = [["Ambiguity_Code"
+  let withintsscsv = finalprintreadywithintss
+                     `CD.deepseq`
+                     toCSV finalprintreadywithintss
+  let finalprintreadyambiguitycodeswithintss =  printreadyambiguitycodeswithintss
+                                                `CD.deepseq`
+                                                [["Ambiguity_Code"
                                                 ,"Mapped_Nucleotide_String"
                                                 ,"Chromosome"
                                                 ,"TSS"
@@ -161,15 +167,21 @@ fastaRegionInspect config = do
                                                 ,"SYMBOL"
                                                 ,"Ambiguity_Code_String_Locations_Within_TSS"]] 
                                                ++ printreadyambiguitycodeswithintss
-  let ambiguitycodeswithintsscsv = toCSV finalprintreadyambiguitycodeswithintss
-  let finalprintreadyvariantsinambiguitycodesandtss = [["Variant"
+  let ambiguitycodeswithintsscsv = finalprintreadyambiguitycodeswithintss
+                                   `CD.deepseq`
+                                   toCSV finalprintreadyambiguitycodeswithintss
+  let finalprintreadyvariantsinambiguitycodesandtss = printreadyvariantsinambiguitycodesandtss
+                                                      `CD.deepseq`
+                                                      [["Variant"
                                                        ,"Region"
                                                        ,"Variant_Within_Region"
                                                        ,"Ambiguity_Code"
                                                        ,"Mapped_Nucleotide_String"
                                                        ,"Ambiguity_Code_String_Locations_Within_TSS"]] 
                                                       ++ printreadyvariantsinambiguitycodesandtss
-  let variantsinambiguitycodesandtsscsv = toCSV finalprintreadyvariantsinambiguitycodesandtss
+  let variantsinambiguitycodesandtsscsv = finalprintreadyvariantsinambiguitycodesandtss
+                                          `CD.deepseq`
+                                          toCSV finalprintreadyvariantsinambiguitycodesandtss
   --Print withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss to files.
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "

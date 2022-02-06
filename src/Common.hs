@@ -328,104 +328,91 @@ grabRegionSequence currentsequence currentregion currenttsswinsize =
 --subStrLocationsSmallForward -> This function will
 --find the locations for all given substrings
 --found using allStrGeneration.
-subStrLocationsSmallForward :: FRIConfig -> [String] -> BioMartRegion -> IO [[Int]]
-subStrLocationsSmallForward _      []                                        _             = return []
-subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) currentregion = do
+subStrLocationsSmallForward :: FRIConfig -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
+subStrLocationsSmallForward _      []                                        _             _              = return []
+subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
                          DL.++ "Processing mapped ambiguity code "
                          DL.++ currentmappedambstr
                          DL.++ " ...")
-  fastaseq <- grabFastaSequence config
-                                currentregion
-  let Right finalfastafile = fastaseq
-  if | DE.isRight fastaseq
-     -> if | DMaybe.isJust tsswinsize
-           -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
-                                               (grabRegionSequence
-                                               finalfastafile
-                                               currentregion
-                                               (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))]
-                 subStrLocationsSmallForward config
-                                             restofmappedambstrs
-                                             currentregion
-           | otherwise
-           -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
-                                               (grabRegionSequence
-                                               finalfastafile
-                                               currentregion
-                                               2000)]
-                 subStrLocationsSmallForward config
-                                             restofmappedambstrs
-                                             currentregion
-     | otherwise
-     -> do _ <- return $ [[]]
-           subStrLocationsSmallForward config 
+  if | DMaybe.isJust tsswinsize
+     -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
+                                         (grabRegionSequence
+                                         finalfastafile
+                                         currentregion
+                                         (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))]
+           subStrLocationsSmallForward config
                                        restofmappedambstrs
                                        currentregion
+                                       finalfastafile
+     | otherwise
+     -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
+                                         (grabRegionSequence
+                                         finalfastafile
+                                         currentregion
+                                         2000)]
+           subStrLocationsSmallForward config
+                                       restofmappedambstrs
+                                       currentregion
+                                       finalfastafile
     where
       tsswinsize       = tsswindowsize config 
 
 --subStrLocationsSmallReverse -> This function will
 --find the locations for all given substrings
 --found using allStrGeneration.
-subStrLocationsSmallReverse :: FRIConfig -> [String] -> BioMartRegion -> IO [[Int]]
-subStrLocationsSmallReverse _      []                                        _             = return []
-subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) currentregion = do
+subStrLocationsSmallReverse :: FRIConfig -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
+subStrLocationsSmallReverse _      []                                        _             _              = return []
+subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
                          DL.++ "Processing mapped ambiguity code " 
                          DL.++ currentmappedambstr 
                          DL.++ " ...")
-  fastaseq <- grabFastaSequence config
-                                currentregion
-  let Right finalfastafile = fastaseq
-  if | DE.isRight fastaseq
-     -> if | DMaybe.isJust tsswinsize
-           -> do _ <- return $ [DL.map (\a -> (DBC.length
-                                              ((grabRegionSequence finalfastafile
-                                                                   currentregion
-                                                                   (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)))) - a - 1)
-                                              (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                              (reverseComplementNucleotide
-                                              (grabRegionSequence finalfastafile
-                                                                  currentregion
-                                                                  (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))))]
-                 subStrLocationsSmallReverse config
-                                             restofmappedambstrs
-                                             currentregion
-           | otherwise
-           -> do _ <- return $ [DL.map (\a -> (DBC.length
-                                              ((grabRegionSequence finalfastafile
-                                                                   currentregion
-                                                                   2000))) - a - 1)
-                                              (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                              (reverseComplementNucleotide
-                                              (grabRegionSequence finalfastafile
-                                                                  currentregion
-                                                                  2000)))]
-                 subStrLocationsSmallReverse config
-                                             restofmappedambstrs
-                                             currentregion
-     | otherwise
-     -> do _ <- return $ [[]]
+  if | DMaybe.isJust tsswinsize
+     -> do _ <- return $ [DL.map (\a -> (DBC.length
+                                        ((grabRegionSequence finalfastafile
+                                                             currentregion
+                                                             (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)))) - a - 1)
+                                        (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                        (reverseComplementNucleotide
+                                        (grabRegionSequence finalfastafile
+                                                            currentregion
+                                                            (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))))]
            subStrLocationsSmallReverse config
                                        restofmappedambstrs
                                        currentregion
+                                       finalfastafile
+     | otherwise
+     -> do _ <- return $ [DL.map (\a -> (DBC.length
+                                        ((grabRegionSequence finalfastafile
+                                                             currentregion
+                                                             2000))) - a - 1)
+                                        (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                        (reverseComplementNucleotide
+                                        (grabRegionSequence finalfastafile
+                                                            currentregion
+                                                            2000)))]
+           subStrLocationsSmallReverse config
+                                       restofmappedambstrs
+                                       currentregion
+                                       finalfastafile
     where
       tsswinsize = tsswindowsize config 
 
 --subStrLocations -> This function will
 --find the locations for all given substrings
 --found using allStrGeneration.
-subStrLocations :: FRIConfig -> [String] -> BioMartRegion -> IO [[Int]]
-subStrLocations _      []                     _             = return []
-subStrLocations config allmappedambiguitystrs currentregion = do
+subStrLocations :: FRIConfig -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
+subStrLocations _      []                     _             _        = return []
+subStrLocations config allmappedambiguitystrs currentregion fastaseq = do
   if | DMaybe.isJust tsswinsize
      -> if | currentregionstrand == "-1"
            -> do reversesubstrlocs <- subStrLocationsSmallReverse config
                                                                   allmappedambiguitystrs
                                                                   currentregion
+                                                                  fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((((read currentregiontss) - (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)) + i) + 2)))
                           reversesubstrlocs)
@@ -434,6 +421,7 @@ subStrLocations config allmappedambiguitystrs currentregion = do
            -> do forwardsubstrlocs <- subStrLocationsSmallForward config
                                                                   allmappedambiguitystrs
                                                                   currentregion
+                                                                  fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((read currentregiontss) + i)))
                           forwardsubstrlocs)
@@ -443,6 +431,7 @@ subStrLocations config allmappedambiguitystrs currentregion = do
            -> do reversesubstrlocs <- subStrLocationsSmallReverse config
                                                                   allmappedambiguitystrs
                                                                   currentregion
+                                                                  fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((((read currentregiontss) - 2000) + i) + 2)))
                           reversesubstrlocs)
@@ -450,7 +439,8 @@ subStrLocations config allmappedambiguitystrs currentregion = do
            | otherwise
            -> do forwardsubstrlocs <- subStrLocationsSmallForward config
                                                                   allmappedambiguitystrs
-                                                                  currentregion 
+                                                                  currentregion
+                                                                  fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((read currentregiontss) + i)))
                           forwardsubstrlocs)
@@ -481,41 +471,93 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
      -> if | currentregionstrand == currentstrand
            -> do --Grab locations of mapped am codes,
                  --and recurse.
-                 substrlocs <- subStrLocations config
-                                               (DL.map (fst) allmappedambiguitystrs)
+                 fastaseq <- grabFastaSequence config
                                                currentregion
-                 _ <- return $ [( currentambcode
-                                , DL.map (fst) allmappedambiguitystrs
-                                , allcurrentregiondata
-                                , substrlocs
-                               )]
+                 if | DE.isRight fastaseq
+                    -> do let Right finalfastafile = fastaseq
+                          substrlocs <- subStrLocations config
+                                                        (DL.map (fst) allmappedambiguitystrs)
+                                                        currentregion
+                                                        finalfastafile                  
+                          _ <- return $ [( currentambcode
+                                         , DL.map (fst) allmappedambiguitystrs
+                                         , allcurrentregiondata
+                                         , substrlocs
+                                        )]
+                          ambiguityCodesWithinRegionCheckSmall config
+                                                               currentambtuple
+                                                               allmappedambiguitystrs
+                                                               restofregions
+                    | otherwise
+                    -> do currenttandd <- DTime.getZonedTime
+                          _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                                                 DL.++ "Could not load and parse fasta file ...")
+                          _ <- return $ [( currentambcode
+                                         , DL.map (fst) allmappedambiguitystrs
+                                         , allcurrentregiondata
+                                         , [[]]
+                                        )]
+                          ambiguityCodesWithinRegionCheckSmall config
+                                                               currentambtuple
+                                                               allmappedambiguitystrs
+                                                               restofregions
+           | otherwise
+           -> do --Current ambiguity codes and mapped strings
+                 --are not correct for region strand
+                 --(i.e. "-1" != "1" or "1" != "-1").
+                 currenttandd <- DTime.getZonedTime
+                 let numofspaces      = DL.length ("[" DL.++ (show currenttandd) DL.++ "] ")
+                 let printnumofspaces = DL.replicate numofspaces ' '
+                 _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                                        DL.++ "Could not process region data associated with current ambiguity code "
+                                        DL.++ currentambcode 
+                                        DL.++ ":\n"
+                                        DL.++ printnumofspaces
+                                        DL.++ currentambcode
+                                        DL.++ " strand orientation is "
+                                        DL.++ currentstrand
+                                        DL.++ " and "
+                                        DL.++ currentregiongenename
+                                        DL.++ " strand orientation is "
+                                        DL.++ currentregionstrand
+                                        DL.++ " ..." )
                  ambiguityCodesWithinRegionCheckSmall config
                                                       currentambtuple
                                                       allmappedambiguitystrs
                                                       restofregions
-           | otherwise
-           -> --Current ambiguity codes and mapped strings
-              --are not correct for region strand
-              --(i.e. "-1" != "1" or "1" != "-1").
-              ambiguityCodesWithinRegionCheckSmall config
-                                                   currentambtuple
-                                                   allmappedambiguitystrs
-                                                   restofregions
      | otherwise
      -> do --Ignore strandedness, find both the ambiguity mapped strings
            --and the reverse complement ambiguity mapped strings.
-           substrlocs <- subStrLocations config
-                                         (DL.map (fst) allmappedambiguitystrs)
+           fastaseq <- grabFastaSequence config
                                          currentregion
-           _ <- return $ [( currentambcode
-                         , DL.map (fst) allmappedambiguitystrs
-                         , allcurrentregiondata
-                         , substrlocs
-                         )]
-           ambiguityCodesWithinRegionCheckSmall config
-                                                currentambtuple
-                                                allmappedambiguitystrs
-                                                restofregions
+           if | DE.isRight fastaseq
+              -> do let Right finalfastafile = fastaseq
+                    substrlocs <- subStrLocations config
+                                                  (DL.map (fst) allmappedambiguitystrs)
+                                                  currentregion
+                                                  finalfastafile
+                    _ <- return $ [( currentambcode
+                                  , DL.map (fst) allmappedambiguitystrs
+                                  , allcurrentregiondata
+                                  , substrlocs
+                                  )]
+                    ambiguityCodesWithinRegionCheckSmall config
+                                                         currentambtuple
+                                                         allmappedambiguitystrs
+                                                         restofregions
+              | otherwise
+              -> do currenttandd <- DTime.getZonedTime
+                    _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                                           DL.++ "Could not load and parse fasta file ...")
+                    _ <- return $ [( currentambcode
+                                  , DL.map (fst) allmappedambiguitystrs
+                                  , allcurrentregiondata
+                                  , [[]]
+                                  )]
+                    ambiguityCodesWithinRegionCheckSmall config
+                                                         currentambtuple
+                                                         allmappedambiguitystrs
+                                                         restofregions
     where
       allcurrentregiondata  = [ currentregionchr
                               , currentregiontss
