@@ -164,15 +164,13 @@ variantWithinRegionCheck config allregions  =
     True  -> do --User did provide tsswindowsize.
                 variantRegionCheck (variants config)
                                    allregions
-                                   (read $ finaltsswinsize)
+                                   (read $ DText.unpack $ DMaybe.fromJust tsswinsize)
     False -> do --User did not provide tsswindowsize.
                 --Use 2 kb as default TSS window size.  
                 variantRegionCheck (variants config)
                                    allregions
                                    2000
     where
-      finaltsswinsize = DText.unpack $
-                        DMaybe.fromJust (tsswindowsize config) 
       tsswinsize      = tsswindowsize config
 
 --convertToListWithinTSS -> This function will
