@@ -46,6 +46,7 @@ data FRIConfig = FRIConfig { fasta              :: Text
                            , ambiguitycodes     :: [Text]
                            , outputdirectory    :: Text
                            , tsswindowsize      :: Maybe Text
+                           , keepbiomart        :: Bool
                            , ignorestrandedness :: Bool
                            } deriving (Eq,Show,Read)
 
@@ -69,6 +70,7 @@ parseFRIConfig v = FRIConfig
   <*> v .:  "Ambiguity_Codes"
   <*> v .:  "Output_Directory"
   <*> v .:? "TSS_Window_Size"
+  <*> v .:  "Keep_BioMart"
   <*> v .:  "Ignore_Strandedness"
 
 instance FromJSON Variants where

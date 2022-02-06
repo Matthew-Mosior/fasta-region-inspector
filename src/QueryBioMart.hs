@@ -58,7 +58,7 @@ runQueryBioMart config = do
   _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
                          ++ "Generating BioMart compatible XML ...")
   
-  let biomartxml = Element "Query" [ ("virtualSchemaName","Default")
+  let biomartxml = Element "Query" [ ("virtualSchemaName","default")
                                    , ("formatter","CSV")
                                    , ("header","0")
                                    , ("uniqueRows","0")
@@ -89,55 +89,140 @@ runQueryBioMart config = do
   --Query BioMart using wget command via system process call.
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                         ++ "Querying and downloading region data from BioMart via system process call ...")
-  (_,hout,_,ph) <- SP.createProcess $
-                     (SP.shell ("wget " ++
-                                "'http://www.ensembl.org/biomart/martservice?query=" ++
-                                DText.unpack (DTL.toStrict (renderText def $ finalbiomartxml)) ++
-                                "'"
-                     )) 
-  ec <- waitForProcess ph
-  case ec of
-    SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
-                           _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                  ++ "Could not query and download region data from BioMart via system process call.")
-                           return []
-    SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
-                           _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                  ++ "Successfully queried and downloaded region data from BioMart via system process call ...")
-                           --Process downloaded BioMart data.
-                           currenttandd <- DTime.getZonedTime
-                           _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                  ++ "Beginning to process downloaded region data ...") 
-                           case hout of
-                             Just res -> do --Turn handle into usable [BioMartRegion].
-                                            currenttandd <- DTime.getZonedTime
-                                            _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                                   ++ "Converting std out handle from query to region data ...")
-                                            returnedbiomartregions <- SIO.hGetContents res 
-                                            let finalbiomartregions    = DL.map (\x -> DLS.splitOn "," x)
-                                                                         (DL.lines returnedbiomartregions)
-                                            let processedregiondata    = DL.concat
-                                                                         (DL.map 
-                                                                         (DL.map (\y -> BioMartRegion { rchromosome = DText.pack
-                                                                                                                     (DL.take 1 y)
-                                                                                                     , rtss        = DText.pack
-                                                                                                                     (DL.drop 1
-                                                                                                                     (DL.take 2 y))
-                                                                                                     , rstrand     = DText.pack
-                                                                                                                     (DL.drop 2
-                                                                                                                     (DL.take 3 y))
-                                                                                                     , rgenename   = DText.pack
-                                                                                                                     (DL.drop 3
-                                                                                                                     (DL.take 4 y))
-                                                                                                     }))
-                                                                         finalbiomartregions)
-                                            return processedregiondata
-                             Nothing  -> do --Unable to turn std out handl into usable [BioMartRegion].
-                                            currenttandd <- DTime.getZonedTime
-                                            _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                                   ++ "Unable to convert std out handle from query to region data ...")
-                                            return []
+                         ++ "Querying and downloading region data from BioMart via system process call ...") 
+  if | DL.last outputdir == '/'
+     -> do (_,_,_,ph) <- SP.createProcess $
+                              (SP.shell ("wget "                                                        ++
+                                         "-O "                                                          ++
+                                         outputdir                                                      ++
+                                         "biomartresult.txt "                                           ++
+                                         "'http://www.ensembl.org/biomart/martservice?query="           ++
+                                         DText.unpack (DTL.toStrict (renderText def $ finalbiomartxml)) ++
+                                         "'"
+                              )) 
+           ec <- waitForProcess ph
+           case ec of
+             SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
+                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                           ++ "Could not query and download region data from BioMart via system process call.")
+                                    return []
+             SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
+                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                           ++ "Successfully queried and downloaded region data from BioMart via system process call ...") 
+                                    currenttandd <- DTime.getZonedTime
+                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                           ++ "Beginning to process downloaded region data ...")
+                                    returnedbiomartregions <- SIO.readFile' (outputdir ++
+                                                                             "biomartresult.txt")
+                                    let finalbiomartregions = DL.map (\x -> DLS.splitOn "," x)
+                                                                     (DL.lines returnedbiomartregions) 
+                                    let processedregiondata    = DL.map (\x -> BioMartRegion { rchromosome = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.take 1 x))
+                                                                                             , rtss        = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.drop 1
+                                                                                                             (DL.take 2 x)))
+                                                                                             , rstrand     = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.drop 2
+                                                                                                             (DL.take 3 x)))
+                                                                                             , rgenename   = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.drop 3
+                                                                                                             (DL.take 4 x)))
+                                                                                             }
+                                                                        )
+                                                                 finalbiomartregions
+                                    if | keepbiomart config
+                                       -> return processedregiondata
+                                       | otherwise
+                                       -> do currenttandd <- DTime.getZonedTime
+                                             _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                    ++ "Removing downloaded BioMart region file ...")
+                                             (_,_,_,ph) <- SP.createProcess $
+                                                                (SP.shell ("rm "     ++
+                                                                           outputdir ++
+                                                                           "biomartresult.txt"
+                                                                           ))
+                                             ec <- waitForProcess ph
+                                             case ec of
+                                               SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
+                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                                             ++ "Could not remove downloaded BioMart region file ...")
+                                                                      return processedregiondata
+                                               SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
+                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                                             ++ "Removed downloaded BioMart region file ...")
+                                                                      return processedregiondata
+     | otherwise
+     -> do (_,_,_,ph) <- SP.createProcess $
+                              (SP.shell ("wget "                                                        ++
+                                         "-O "                                                          ++
+                                         outputdir                                                      ++
+                                         "/"                                                            ++
+                                         "biomartresult.txt "                                           ++
+                                         "'http://www.ensembl.org/biomart/martservice?query="           ++
+                                         DText.unpack (DTL.toStrict (renderText def $ finalbiomartxml)) ++
+                                         "'"
+                              )) 
+           ec <- waitForProcess ph
+           case ec of
+             SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
+                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                           ++ "Could not query and download region data from BioMart via system process call.")
+                                    return []
+             SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
+                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                           ++ "Successfully queried and downloaded region data from BioMart via system process call ...") 
+                                    currenttandd <- DTime.getZonedTime
+                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                           ++ "Beginning to process downloaded region data ...")
+                                    returnedbiomartregions <- SIO.readFile' (outputdir ++
+                                                                             "/"       ++
+                                                                             "biomartresult.txt")
+                                    let finalbiomartregions = DL.map (\x -> DLS.splitOn "," x)
+                                                                     (DL.lines returnedbiomartregions)                                   
+                                    let processedregiondata    = DL.map (\x -> BioMartRegion { rchromosome = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.take 1 x))
+                                                                                             , rtss        = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.drop 1
+                                                                                                             (DL.take 2 x)))
+                                                                                             , rstrand     = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.drop 2
+                                                                                                             (DL.take 3 x)))
+                                                                                             , rgenename   = DText.pack
+                                                                                                             (DL.concat
+                                                                                                             (DL.drop 3
+                                                                                                             (DL.take 4 x)))
+                                                                                             }
+                                                                        )
+                                                                 finalbiomartregions  
+                                    if | keepbiomart config
+                                       -> return processedregiondata
+                                       | otherwise
+                                       -> do currenttandd <- DTime.getZonedTime
+                                             _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                    ++ "Removing downloaded BioMart region file ...")
+                                             (_,_,_,ph) <- SP.createProcess $
+                                                                (SP.shell ("rm "     ++
+                                                                           outputdir ++
+                                                                           "/"       ++
+                                                                           "biomartresult.txt"
+                                                                           ))
+                                             ec <- waitForProcess ph
+                                             case ec of
+                                               SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
+                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                                             ++ "Could not remove downloaded BioMart region file ...")
+                                                                      return processedregiondata
+                                               SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
+                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                                             ++ "Removed downloaded BioMart region file ...")
+                                                                      return processedregiondata
     where
       finalallensts = DText.pack
                       (DL.intercalate
@@ -148,5 +233,6 @@ runQueryBioMart config = do
                       (DL.map (\x -> venst x)
                       allvariants))
       allvariants   = variants config
+      outputdir     = DText.unpack $ outputdirectory config
 
 {--------------------------}
