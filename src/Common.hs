@@ -506,10 +506,13 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                  --are not correct for region strand
                  --(i.e. "-1" != "1" or "1" != "-1").
                  currenttandd <- DTime.getZonedTime
+                 let numofspaces      = DL.length ("[" DL.++ (show currenttandd) DL.++ "] ")
+                 let printnumofspaces = DL.replicate numofspaces ' '
                  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
                                         DL.++ "Could not process region data associated with current ambiguity code "
                                         DL.++ currentambcode 
                                         DL.++ ":\n"
+                                        DL.++ printnumofspaces
                                         DL.++ currentambcode
                                         DL.++ " strand orientation is "
                                         DL.++ currentstrand
