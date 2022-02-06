@@ -175,14 +175,14 @@ fastaRegionInspect config = do
   _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
                          ++ "Printing output CSV files ...") 
   finalprintreadywithintss `CD.deepseq` writeCSV config
-                                                 "variants.csv"
                                                  withintsscsv
+                                                 "variants.csv"
   finalprintreadyambiguitycodeswithintss `CD.deepseq` writeCSV config
-                                                               "ambiguity_codes.csv"
                                                                ambiguitycodeswithintsscsv
+                                                               "ambiguity_codes.csv"
   finalprintreadyvariantsinambiguitycodesandtss `CD.deepseq` writeCSV config
-                                                                      "variants_in_ambiguity_codes.csv"
                                                                       variantsinambiguitycodesandtsscsv
+                                                                      "variants_in_ambiguity_codes.csv"
   --Shut down FRI.
   currenttandd <- DTime.getZonedTime
   SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
