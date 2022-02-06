@@ -277,7 +277,7 @@ smallGrabFastaSequence currentregion (currentsequence:restofsequences) =
 grabFastaSequence :: FRIConfig -> BioMartRegion -> IO (Either () (Vector Char))
 grabFastaSequence config currentregion = do
   currenttandd <- DTime.getZonedTime
-  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+  _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Extracting fasta sequence associated with chromosome: "
                          DL.++ currentregionchr
                          DL.++ ", tss: "
@@ -332,7 +332,7 @@ subStrLocationsSmallForward :: FRIConfig -> [String] -> BioMartRegion -> Vector 
 subStrLocationsSmallForward _      []                                        _             _              = return []
 subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
   currenttandd <- DTime.getZonedTime
-  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+  _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Processing mapped ambiguity code "
                          DL.++ currentmappedambstr
                          DL.++ " ...")
@@ -366,7 +366,7 @@ subStrLocationsSmallReverse :: FRIConfig -> [String] -> BioMartRegion -> Vector 
 subStrLocationsSmallReverse _      []                                        _             _              = return []
 subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
   currenttandd <- DTime.getZonedTime
-  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+  _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Processing mapped ambiguity code " 
                          DL.++ currentmappedambstr 
                          DL.++ " ...")
@@ -463,7 +463,7 @@ ambiguityCodesWithinRegionCheckSmall _      ((_:_),(_:_))                       
 ambiguityCodesWithinRegionCheckSmall _      ([],(_:_))                                     (_:_)                  []                            = return []
 ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,currentstrand) allmappedambiguitystrs (currentregion:restofregions) = do
   currenttandd <- DTime.getZonedTime
-  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+  _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Processing region data associated with gene "
                          DL.++ currentregiongenename
                          DL.++ " ...")  
@@ -490,7 +490,7 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                                                                restofregions
                     | otherwise
                     -> do currenttandd <- DTime.getZonedTime
-                          _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                          _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                                                  DL.++ "Could not load and parse fasta file ...")
                           _ <- return $ [( currentambcode
                                          , DL.map (fst) allmappedambiguitystrs
@@ -506,9 +506,9 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                  --are not correct for region strand
                  --(i.e. "-1" != "1" or "1" != "-1").
                  currenttandd <- DTime.getZonedTime
-                 let numofspaces      = DL.length ("[" DL.++ (show currenttandd) DL.++ "] ")
+                 let numofspaces      = DL.length ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] ")
                  let printnumofspaces = DL.replicate numofspaces ' '
-                 _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                 _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                                         DL.++ "Could not process region data associated with current ambiguity code "
                                         DL.++ currentambcode 
                                         DL.++ ":\n"
@@ -547,7 +547,7 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                                                          restofregions
               | otherwise
               -> do currenttandd <- DTime.getZonedTime
-                    _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                    _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                                            DL.++ "Could not load and parse fasta file ...")
                     _ <- return $ [( currentambcode
                                   , DL.map (fst) allmappedambiguitystrs
@@ -885,5 +885,30 @@ writeCSV config csvdata outputfilename =
                       csvdata
     where
       outputdir = DText.unpack $ outputdirectory config      
+
+{-------------------------}
+
+
+{-Time related functions.-}
+
+showPrettyZonedTime :: ZonedTime -> String
+showPrettyZonedTime currenttandd =
+  currenttanddnotimezone DL.++
+  zeroestoadd            DL.++
+  " "                    DL.++
+  currenttimezone
+    where
+      zeroestoadd            = DL.concat                                               $
+                               DL.map show                                             $
+                               DL.take (26 - (DL.length currenttanddnotimezone))       $
+                               DL.repeat 0
+      currenttanddnotimezone = DL.reverse
+                               (DL.drop 4
+                               (DL.reverse
+                               (show currenttandd)))
+      currenttimezone        = DL.reverse
+                               (DL.take 3
+                               (DL.reverse
+                               (show currenttandd)))
 
 {-------------------------}
