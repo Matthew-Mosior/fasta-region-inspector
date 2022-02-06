@@ -93,8 +93,9 @@ runQueryBioMart config = do
   (_,hout,_,ph) <- SP.createProcess $
                      (SP.shell ("wget " ++
                                 "'http://www.ensembl.org/biomart/martservice?query=" ++
-                                DText.unpack (DTL.toStrict (renderText def $ finalbiomartxml))
-                     )) -- { std_out = CreatePipe }
+                                DText.unpack (DTL.toStrict (renderText def $ finalbiomartxml)) ++
+                                "'"
+                     )) 
   ec <- waitForProcess ph
   case ec of
     SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime

@@ -278,6 +278,17 @@ smallGrabFastaSequence currentregion (currentsequence:restofsequences) =
 --in the region file.
 grabFastaSequence :: FRIConfig -> BioMartRegion -> IO (Either () (Vector Char))
 grabFastaSequence config currentregion = do
+  currenttandd <- DTime.getZonedTime
+  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                         DL.++ "Extracting fasta sequence associated with chromosome: "
+                         DL.++ currentregionchr
+                         DL.++ ", tss: "
+                         DL.++ currentregiontss
+                         DL.++ ", strand: "
+                         DL.++ currentregionstrand
+                         DL.++ ", gene: "
+                         DL.++ currentregiongenename
+                         DL.++ " ...")
   --Read the file into a strict ByteString.
   inputfastafile <- DB.readFile (DText.unpack $
                                 YamlParser.fasta config)
@@ -289,6 +300,11 @@ grabFastaSequence config currentregion = do
     Left  _      -> return $ Left () 
     Right cfasta -> return $ Right (smallGrabFastaSequence currentregion
                                                            cfasta) 
+    where
+      currentregionchr      = DText.unpack (rchromosome currentregion)
+      currentregiontss      = DText.unpack (rtss currentregion)
+      currentregionstrand   = DText.unpack (rstrand currentregion)
+      currentregiongenename = DText.unpack (rgenename currentregion)
 
 --grabRegionSequence -> This function will
 --grab the region of the correct chr
@@ -317,6 +333,11 @@ grabRegionSequence currentsequence currentregion currenttsswinsize =
 subStrLocationsSmallForward :: FRIConfig -> [String] -> BioMartRegion -> IO [[Int]]
 subStrLocationsSmallForward _      []                                        _             = return []
 subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) currentregion = do
+  currenttandd <- DTime.getZonedTime
+  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                         DL.++ "Processing mapped ambiguity code "
+                         DL.++ currentmappedambstr
+                         DL.++ " ...")
   fastaseq <- grabFastaSequence config
                                 currentregion
   let Right finalfastafile = fastaseq
@@ -353,6 +374,11 @@ subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) cur
 subStrLocationsSmallReverse :: FRIConfig -> [String] -> BioMartRegion -> IO [[Int]]
 subStrLocationsSmallReverse _      []                                        _             = return []
 subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) currentregion = do
+  currenttandd <- DTime.getZonedTime
+  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                         DL.++ "Processing mapped ambiguity code " 
+                         DL.++ currentmappedambstr 
+                         DL.++ " ...")
   fastaseq <- grabFastaSequence config
                                 currentregion
   let Right finalfastafile = fastaseq
@@ -389,7 +415,7 @@ subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) cur
                                        restofmappedambstrs
                                        currentregion
     where
-      tsswinsize       = tsswindowsize config 
+      tsswinsize = tsswindowsize config 
 
 --subStrLocations -> This function will
 --find the locations for all given substrings
@@ -448,6 +474,11 @@ ambiguityCodesWithinRegionCheckSmall _      ((_:_),[])                          
 ambiguityCodesWithinRegionCheckSmall _      ((_:_),(_:_))                                  (_:_)                  []                            = return []
 ambiguityCodesWithinRegionCheckSmall _      ([],(_:_))                                     (_:_)                  []                            = return []
 ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,currentstrand) allmappedambiguitystrs (currentregion:restofregions) = do
+  currenttandd <- DTime.getZonedTime
+  _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                         DL.++ "Processing region data associated with gene "
+                         DL.++ currentregiongenename
+                         DL.++ " ...")  
   if | (ignorestrandedness config) == False
      -> if | currentregionstrand == currentstrand
            -> do --Grab locations of mapped am codes,
