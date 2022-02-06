@@ -489,7 +489,10 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                                                                allmappedambiguitystrs
                                                                restofregions
                     | otherwise
-                    -> do _ <- return $ [( currentambcode
+                    -> do currenttandd <- DTime.getZonedTime
+                          _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                                                 DL.++ "Could not load and parse fasta file ...")
+                          _ <- return $ [( currentambcode
                                          , DL.map (fst) allmappedambiguitystrs
                                          , allcurrentregiondata
                                          , [[]]
@@ -499,13 +502,26 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                                                                allmappedambiguitystrs
                                                                restofregions
            | otherwise
-           -> --Current ambiguity codes and mapped strings
-              --are not correct for region strand
-              --(i.e. "-1" != "1" or "1" != "-1").
-              ambiguityCodesWithinRegionCheckSmall config
-                                                   currentambtuple
-                                                   allmappedambiguitystrs
-                                                   restofregions
+           -> do --Current ambiguity codes and mapped strings
+                 --are not correct for region strand
+                 --(i.e. "-1" != "1" or "1" != "-1").
+                 currenttandd <- DTime.getZonedTime
+                 _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                                        DL.++ "Could not process region data associated with current ambiguity code "
+                                        DL.++ currentambcode 
+                                        DL.++ ":\n"
+                                        DL.++ currentambcode
+                                        DL.++ " strand orientation is "
+                                        DL.++ currentstrand
+                                        DL.++ " and "
+                                        DL.++ currentregiongenename
+                                        DL.++ " strand orientation is "
+                                        DL.++ currentregionstrand
+                                        DL.++ " ..." )
+                 ambiguityCodesWithinRegionCheckSmall config
+                                                      currentambtuple
+                                                      allmappedambiguitystrs
+                                                      restofregions
      | otherwise
      -> do --Ignore strandedness, find both the ambiguity mapped strings
            --and the reverse complement ambiguity mapped strings.
@@ -527,7 +543,10 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
                                                          allmappedambiguitystrs
                                                          restofregions
               | otherwise
-              -> do _ <- return $ [( currentambcode
+              -> do currenttandd <- DTime.getZonedTime
+                    _ <- SIO.putStrLn ("[" DL.++ (show currenttandd) DL.++ "] "
+                                           DL.++ "Could not load and parse fasta file ...")
+                    _ <- return $ [( currentambcode
                                   , DL.map (fst) allmappedambiguitystrs
                                   , allcurrentregiondata
                                   , [[]]
