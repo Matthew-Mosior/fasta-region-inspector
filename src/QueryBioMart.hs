@@ -25,6 +25,7 @@ module QueryBioMart where
 
 {-Import modules.-}
 
+import Common
 import YamlParser
 
 {-----------------}
@@ -55,7 +56,7 @@ runQueryBioMart :: FRIConfig -> IO [BioMartRegion]
 runQueryBioMart config = do
   --Generate BioMart compatible xml.
   currenttandd <- DTime.getZonedTime 
-  _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+  _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                          ++ "Generating BioMart compatible XML ...")
   
   let biomartxml = Element "Query" [ ("virtualSchemaName","default")
@@ -88,7 +89,7 @@ runQueryBioMart config = do
                                  []
   --Query BioMart using wget command via system process call.
   currenttandd <- DTime.getZonedTime
-  _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+  _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                          ++ "Querying and downloading region data from BioMart via system process call ...") 
   if | DL.last outputdir == '/'
      -> do (_,_,_,ph) <- SP.createProcess $
@@ -103,14 +104,14 @@ runQueryBioMart config = do
            ec <- waitForProcess ph
            case ec of
              SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
-                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                    _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                            ++ "Could not query and download region data from BioMart via system process call.")
                                     return []
              SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
-                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                    _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                            ++ "Successfully queried and downloaded region data from BioMart via system process call ...") 
                                     currenttandd <- DTime.getZonedTime
-                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                    _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                            ++ "Beginning to process downloaded region data ...")
                                     returnedbiomartregions <- SIO.readFile' (outputdir ++
                                                                              "biomartresult.txt")
@@ -138,7 +139,7 @@ runQueryBioMart config = do
                                        -> return processedregiondata
                                        | otherwise
                                        -> do currenttandd <- DTime.getZonedTime
-                                             _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                             _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                                     ++ "Removing downloaded BioMart region file ...")
                                              (_,_,_,ph) <- SP.createProcess $
                                                                 (SP.shell ("rm "     ++
@@ -148,11 +149,11 @@ runQueryBioMart config = do
                                              ec <- waitForProcess ph
                                              case ec of
                                                SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
-                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                      _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                                                              ++ "Could not remove downloaded BioMart region file ...")
                                                                       return processedregiondata
                                                SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
-                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                      _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                                                              ++ "Removed downloaded BioMart region file ...")
                                                                       return processedregiondata
      | otherwise
@@ -169,14 +170,14 @@ runQueryBioMart config = do
            ec <- waitForProcess ph
            case ec of
              SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
-                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                    _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                            ++ "Could not query and download region data from BioMart via system process call.")
                                     return []
              SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
-                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                    _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                            ++ "Successfully queried and downloaded region data from BioMart via system process call ...") 
                                     currenttandd <- DTime.getZonedTime
-                                    _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                    _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                            ++ "Beginning to process downloaded region data ...")
                                     returnedbiomartregions <- SIO.readFile' (outputdir ++
                                                                              "/"       ++
@@ -205,7 +206,7 @@ runQueryBioMart config = do
                                        -> return processedregiondata
                                        | otherwise
                                        -> do currenttandd <- DTime.getZonedTime
-                                             _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                             _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                                     ++ "Removing downloaded BioMart region file ...")
                                              (_,_,_,ph) <- SP.createProcess $
                                                                 (SP.shell ("rm "     ++
@@ -216,11 +217,11 @@ runQueryBioMart config = do
                                              ec <- waitForProcess ph
                                              case ec of
                                                SX.ExitFailure _ -> do currenttandd <- DTime.getZonedTime
-                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                      _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                                                              ++ "Could not remove downloaded BioMart region file ...")
                                                                       return processedregiondata
                                                SX.ExitSuccess   -> do currenttandd <- DTime.getZonedTime
-                                                                      _ <- SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                      _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                                                              ++ "Removed downloaded BioMart region file ...")
                                                                       return processedregiondata
     where
