@@ -78,6 +78,26 @@ The following keys are **optional**:
 
 ## Variant Type
 
+## Example Usage
+**FRI** is easy to use, as it only requires a single command-line positional argument, the configuration YAML:
+```
+% stack exec --arch aarch64 fasta-region-inspector-exe /path/to/configuration.yaml
+```
+
+## Building the project
+This software was developed on a M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on any compatible platform.
+
+If you are on a M1 mac, please build the project using the following:
+```
+% stack build --arch aarch64
+```
+
+If you are **NOT** on a M1 mac, please build the project using the following:
+```
+% stack build
+```
+
+
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
 
