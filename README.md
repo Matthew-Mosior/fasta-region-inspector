@@ -14,4 +14,4 @@ This bioinformatics tool gives researchers the ability to answer the following q
 This tool aims to answer common SHM variant-level question while providing:
 - Excellent runtime performance in a robust, functional implementation.
 - Minimized memory usage.
-- A simple, yet robust input file format.
+- A simple, YAML input file format.
