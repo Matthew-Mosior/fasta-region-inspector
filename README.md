@@ -77,7 +77,19 @@ The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across.
 
 ## Variant Type
-The ```Variant``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) 
+The ```Variant``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) represents the required information surrounding a variant-of-interest to be examined by **FRI**.
+
+The following keys are **required**:
+- ```Sample``` -> The associated sample identifier for the respective variant (String).
+- ```HGNC_Symbol``` -> The HGNC symbol for the respective variant (String).
+- ```Chromosome``` -> The chromosome the respective variant lies within (String).
+- ```Start_Position``` -> The start position for the respective variant (String).
+- ```End_Position``` -> The end position for the respective variant (String).
+- ```Reference_Allele``` -> The reference allele for the respective variant (String).
+- ```Alternate_Allele``` -> The alternate allele for the respective variant (String).
+- ```ENST``` -> The ENST for the respective variant (String).
+
+Note:  The above data can typically be easily grepped/programmed for from the output of a bioinformatics pipeline run, such as the [alignment_exome.cwl](https://github.com/genome/analysis-workflows/blob/master/definitions/pipelines/alignment_exome.cwl).
 
 ## Building the project
 This software was developed on a M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on any compatible platform.
