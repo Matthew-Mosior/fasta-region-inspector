@@ -5,17 +5,6 @@
 {-=process command line arguments to FRI.=-}
 
 
-{-Language extension.-}
-
-{-# LANGUAGE Strict            #-}
-{-# LANGUAGE StrictData        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLists   #-} 
-
-{---------------------}
-
-
 {-Module.-}
 
 module QueryBioMart where

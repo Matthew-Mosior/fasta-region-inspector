@@ -5,15 +5,6 @@
 {-=process command line arguments to FRI.=-}
 
 
-{-Language extension.-}
-
-{-# LANGUAGE Strict     #-}
-{-# LANGUAGE StrictData #-}
-{-# LANGUAGE MultiWayIf #-}
-
-{---------------------}
-
-
 {-Module.-}
 
 module Common where
@@ -54,12 +45,12 @@ import Data.Time as DTime
 import Data.Traversable as DT
 import Data.Vector.Storable.ByteString as DVSBS
 import Data.Vector.Unboxed as DVU
-import ELynx.Import.Sequence.Fasta as EISF
-import qualified ELynx.Data.Alphabet.Alphabet as EDAA
-import qualified ELynx.Data.Alphabet.Character as EDAC
-import qualified ELynx.Data.Character.Character as EDCC
-import qualified ELynx.Data.Character.NucleotideI as EDCN
-import qualified ELynx.Data.Sequence.Sequence as EDSS
+import ELynx.Sequence.Import.Fasta as EISF
+import qualified ELynx.Alphabet.Alphabet as EDAA
+import qualified ELynx.Alphabet.Character as EDAC
+import qualified ELynx.Character.Character as EDCC
+import qualified ELynx.Character.NucleotideI as EDCN
+import qualified ELynx.Sequence.Sequence as EDSS
 import System.Console.GetOpt as SCG
 import System.Process as SP
 import System.Environment as SE
@@ -180,31 +171,31 @@ convertToListWithinTSS [] = []
 convertToListWithinTSS xs = 
   DL.concat (DL.concat
             (DL.map (\(_,_,c) -> [[DL.intercalate ":" allvariantinfo] DL.++
-                                 [DL.intercalate ":" allregioninfo]  DL.++
+                                 [DL.intercalate ":" allregioninfo]   DL.++
                                  [[c]]])
   xs))
     where
       allvariantinfo = DL.map (DText.unpack)
                               (DL.map (vsample)
-                              (DL.map (\(x,_,_) -> x) xs))     DL.++
+                              (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (vsymbol)
-                              (DL.map (\(x,_,_) -> x) xs))     DL.++
+                              (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (vchromosome)
                               (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (vstartpos)
-                              (DL.map (\(x,_,_) -> x) xs))   DL.++
+                              (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (vendpos)
-                              (DL.map (\(x,_,_) -> x) xs))     DL.++
+                              (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (vref)
-                              (DL.map (\(x,_,_) -> x) xs))        DL.++
+                              (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (valt)
-                              (DL.map (\(x,_,_) -> x) xs))        DL.++
+                              (DL.map (\(x,_,_) -> x) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (venst)
                               (DL.map (\(x,_,_) -> x) xs))
@@ -213,10 +204,10 @@ convertToListWithinTSS xs =
                               (DL.map (\(_,y,_) -> y) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (rtss)
-                              (DL.map (\(_,y,_) -> y) xs))        DL.++
+                              (DL.map (\(_,y,_) -> y) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (rstrand)
-                              (DL.map (\(_,y,_) -> y) xs))     DL.++
+                              (DL.map (\(_,y,_) -> y) xs)) DL.++
                        DL.map (DText.unpack)
                               (DL.map (rgenename)
                               (DL.map (\(_,y,_) -> y) xs))
@@ -233,6 +224,23 @@ prepareWithinTSS (x:xs) =
 {-------------------}
 
 
+{-Convert [EDSS.Sequence] to [(Text,Vector Char)].-}
+
+extractNameAndCharacters :: [EDSS.Sequence] -> [(Text,Vector Char)]
+extractNameAndCharacters allsequences =
+  DL.map (\x -> ( DText.pack    $
+                  CBUTF8.decode $
+                  DBL.unpack    $
+                  EDSS.name x
+                , DVU.map (EDAC.toChar)
+                  (EDSS.characters x)
+                )
+         )
+  allsequences
+
+{--------------------------------------------------}
+
+
 {-Ambiguity Code Functions.-}
 
 --reverseComplementNucleotide -> This function will
@@ -241,10 +249,10 @@ reverseComplementNucleotide :: DB.ByteString -> DB.ByteString
 reverseComplementNucleotide currentsequence =
   DB.pack
   (CBUTF8.encode (DL.map (snd)
-                  (DL.concatMap
-                  (\y -> DL.filter (\(r,_) -> r == y) revcomplementmapping)
-                  (CBUTF8.decode
-                  (DB.unpack (DB.reverse currentsequence))))))
+                 (DL.concatMap
+                 (\y -> DL.filter (\(r,_) -> r == y) revcomplementmapping)
+                 (CBUTF8.decode
+                 (DB.unpack (DB.reverse currentsequence))))))
     where
       revcomplementmapping = [('A','T')
                              ,('T','A')
@@ -255,27 +263,23 @@ reverseComplementNucleotide currentsequence =
 --grab the correct fasta sequence
 --using chromosome information
 --in the region file.
-smallGrabFastaSequence :: BioMartRegion -> [EDSS.Sequence] -> Vector Char
-smallGrabFastaSequence _             []                                = DVU.empty
-smallGrabFastaSequence currentregion (currentsequence:restofsequences) =
-  if | decodedcurrentsequencechr == ("chr" DL.++ currentregionchr)
-     -> DVU.map (EDAC.toChar) currentsequencechars
+smallGrabFastaSequence :: BioMartRegion -> [(Text,Vector Char)] -> Vector Char
+smallGrabFastaSequence _             []                                  = DVU.empty
+smallGrabFastaSequence currentregion ((name,characters):restofsequences) =
+  if | DText.unpack name == ("chr" DL.++ currentregionchr)
+     -> characters
      | otherwise
      -> smallGrabFastaSequence currentregion restofsequences
     where
-      currentsequencechars      = EDSS.characters currentsequence
-      decodedcurrentsequencechr = CBUTF8.decode
-                                  (DBL.unpack
-                                  (EDSS.name currentsequence))
       currentregionchr          = DText.unpack $
                                   rchromosome currentregion
-
+ 
 --grabFastaSequence -> This function will
 --grab the correct fasta sequence
 --using chromosome information
 --in the region file.
-grabFastaSequence :: FRIConfig -> BioMartRegion -> IO (Either () (Vector Char))
-grabFastaSequence config currentregion = do
+grabFastaSequence :: [(Text,Vector Char)] -> BioMartRegion -> IO (Vector Char)
+grabFastaSequence fastafile currentregion = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Extracting fasta sequence associated with chromosome: "
@@ -287,17 +291,7 @@ grabFastaSequence config currentregion = do
                          DL.++ ", gene: "
                          DL.++ currentregiongenename
                          DL.++ " ...")
-  --Read the file into a strict ByteString.
-  inputfastafile <- DB.readFile (DText.unpack $
-                                YamlParser.fasta config)
-  --Parse fastafile into a [Sequence].
-  let pfastafile = parseOnly (EISF.fasta EDAA.DNAI <* endOfInput)
-                             inputfastafile
-  --Walk through cases of pfastafile.
-  case pfastafile of
-    Left  _      -> return $ Left () 
-    Right cfasta -> return $ Right (smallGrabFastaSequence currentregion
-                                                           cfasta) 
+  return $ smallGrabFastaSequence currentregion fastafile
     where
       currentregionchr      = DText.unpack (rchromosome currentregion)
       currentregiontss      = DText.unpack (rtss currentregion)
@@ -328,97 +322,93 @@ grabRegionSequence currentsequence currentregion currenttsswinsize =
 --subStrLocationsSmallForward -> This function will
 --find the locations for all given substrings
 --found using allStrGeneration.
-subStrLocationsSmallForward :: FRIConfig -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
-subStrLocationsSmallForward _      []                                        _             _              = return []
-subStrLocationsSmallForward config (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
+subStrLocationsSmallForward :: Maybe Text -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
+subStrLocationsSmallForward _           []                                        _             _              = return []
+subStrLocationsSmallForward tsswinsizec (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Processing mapped ambiguity code "
                          DL.++ currentmappedambstr
                          DL.++ " ...")
-  if | DMaybe.isJust tsswinsize
-     -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
-                                         (grabRegionSequence
-                                         finalfastafile
-                                         currentregion
-                                         (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))]
-           subStrLocationsSmallForward config
-                                       restofmappedambstrs
-                                       currentregion
-                                       finalfastafile
+  if | DMaybe.isJust tsswinsizec
+     -> do res <- subStrLocationsSmallForward tsswinsizec
+                                              restofmappedambstrs
+                                              currentregion
+                                              finalfastafile
+           return $ (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                    (grabRegionSequence
+                                    finalfastafile
+                                    currentregion
+                                    (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int))) : res
      | otherwise
-     -> do _ <- return $ [DBSDFA.indices (DBC.pack currentmappedambstr)
-                                         (grabRegionSequence
-                                         finalfastafile
-                                         currentregion
-                                         2000)]
-           subStrLocationsSmallForward config
-                                       restofmappedambstrs
-                                       currentregion
-                                       finalfastafile
-    where
-      tsswinsize       = tsswindowsize config 
+     -> do res <- subStrLocationsSmallForward tsswinsizec
+                                              restofmappedambstrs
+                                              currentregion
+                                              finalfastafile
+           return $ (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                    (grabRegionSequence
+                                    finalfastafile
+                                    currentregion
+                                    2000)) : res
 
 --subStrLocationsSmallReverse -> This function will
 --find the locations for all given substrings
 --found using allStrGeneration.
-subStrLocationsSmallReverse :: FRIConfig -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
-subStrLocationsSmallReverse _      []                                        _             _              = return []
-subStrLocationsSmallReverse config (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
+subStrLocationsSmallReverse :: Maybe Text -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
+subStrLocationsSmallReverse _           []                                        _             _              = return []
+subStrLocationsSmallReverse tsswinsizec (currentmappedambstr:restofmappedambstrs) currentregion finalfastafile = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Processing mapped ambiguity code " 
                          DL.++ currentmappedambstr 
                          DL.++ " ...")
-  if | DMaybe.isJust tsswinsize
-     -> do _ <- return $ [DL.map (\a -> (DBC.length
-                                        ((grabRegionSequence finalfastafile
-                                                             currentregion
-                                                             (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)))) - a - 1)
-                                        (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                        (reverseComplementNucleotide
-                                        (grabRegionSequence finalfastafile
-                                                            currentregion
-                                                            (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int))))]
-           subStrLocationsSmallReverse config
-                                       restofmappedambstrs
-                                       currentregion
-                                       finalfastafile
+  if | DMaybe.isJust tsswinsizec
+     -> do res <- subStrLocationsSmallReverse tsswinsizec
+                                              restofmappedambstrs
+                                              currentregion
+                                              finalfastafile
+           return $ (DL.map (\a -> (DBC.length
+                                   ((grabRegionSequence finalfastafile
+                                                        currentregion
+                                                        (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int)))) - a - 1)
+                                   (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                   (reverseComplementNucleotide
+                                   (grabRegionSequence finalfastafile
+                                                       currentregion
+                                                       (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int))))) : res
      | otherwise
-     -> do _ <- return $ [DL.map (\a -> (DBC.length
-                                        ((grabRegionSequence finalfastafile
-                                                             currentregion
-                                                             2000))) - a - 1)
-                                        (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                        (reverseComplementNucleotide
-                                        (grabRegionSequence finalfastafile
-                                                            currentregion
-                                                            2000)))]
-           subStrLocationsSmallReverse config
-                                       restofmappedambstrs
-                                       currentregion
-                                       finalfastafile
-    where
-      tsswinsize = tsswindowsize config 
+     -> do res <- subStrLocationsSmallReverse tsswinsizec
+                                              restofmappedambstrs
+                                              currentregion
+                                              finalfastafile
+           return $ (DL.map (\a -> (DBC.length
+                                   ((grabRegionSequence finalfastafile
+                                                        currentregion
+                                                        2000))) - a - 1)
+                                   (DBSDFA.indices (DBC.pack currentmappedambstr)
+                                   (reverseComplementNucleotide
+                                   (grabRegionSequence finalfastafile
+                                                       currentregion
+                                                       2000)))) : res
 
 --subStrLocations -> This function will
 --find the locations for all given substrings
 --found using allStrGeneration.
-subStrLocations :: FRIConfig -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
-subStrLocations _      []                     _             _        = return []
-subStrLocations config allmappedambiguitystrs currentregion fastaseq = do
-  if | DMaybe.isJust tsswinsize
+subStrLocations :: Maybe Text -> [String] -> BioMartRegion -> Vector Char -> IO [[Int]]
+subStrLocations _           []                     _             _        = return []
+subStrLocations tsswinsizec allmappedambiguitystrs currentregion fastaseq = do
+  if | DMaybe.isJust tsswinsizec
      -> if | currentregionstrand == "-1"
-           -> do reversesubstrlocs <- subStrLocationsSmallReverse config
+           -> do reversesubstrlocs <- subStrLocationsSmallReverse tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
-                            ((((read currentregiontss) - (read (DText.unpack $ DMaybe.fromJust tsswinsize) :: Int)) + i) + 2)))
+                            ((((read currentregiontss) - (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int)) + i) + 2)))
                           reversesubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
-           -> do forwardsubstrlocs <- subStrLocationsSmallForward config
+           -> do forwardsubstrlocs <- subStrLocationsSmallForward tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -428,7 +418,7 @@ subStrLocations config allmappedambiguitystrs currentregion fastaseq = do
                           `CPS.using` (CPS.parList CPS.rdeepseq))
      | otherwise
      -> if | currentregionstrand == "-1"
-           -> do reversesubstrlocs <- subStrLocationsSmallReverse config
+           -> do reversesubstrlocs <- subStrLocationsSmallReverse tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -437,7 +427,7 @@ subStrLocations config allmappedambiguitystrs currentregion fastaseq = do
                           reversesubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
-           -> do forwardsubstrlocs <- subStrLocationsSmallForward config
+           -> do forwardsubstrlocs <- subStrLocationsSmallForward tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -448,116 +438,158 @@ subStrLocations config allmappedambiguitystrs currentregion fastaseq = do
     where
       currentregionstrand = DText.unpack $ rstrand currentregion
       currentregiontss    = DText.unpack $ rtss currentregion
-      tsswinsize          = tsswindowsize config
+
+--ambiguityCodesWithinRegionCheckIgnoreStrandSmall -> This function will
+--check to see if the ambiguity codes are within genes
+--2 kb (or custom TSS window size if provided)
+--of the genes TSS.
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall :: Maybe Text
+                                                 -> [(Text,Vector Char)]
+                                                 -> (String,String)
+                                                 -> [(String,String)]
+                                                 -> [BioMartRegion]
+                                                 -> IO [(String,[String],[String],[[Int]])]
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall _           []        ([],[])                                        []                     _                             = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall _           []        _                                              []                     _                             = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall _           []        ([],[])                                        _                      _                             = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall _           []        ((_:_),[])                                     (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall _           []        ((_:_),(_:_))                                  (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall _           []        ([],(_:_))                                     (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     (_:_)     ([], [])                                       []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     (_:_)     ([], [])                                       (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     (_:_)     ([], (_:_))                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     (_:_)     ([], (_:_))                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    (_:_)     ([], [])                                       []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    (_:_)     ([], [])                                       (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    (_:_)     ([], (_:_))                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    (_:_)     ([], (_:_))                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     _         ((_:_), [])                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     _         ((_:_), [])                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     _         ((_:_), (_:_))                                 []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall Nothing     _         ((_:_), (_:_))                                 (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    _         ((_:_), [])                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    _         ((_:_), [])                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    _         ((_:_), (_:_))                                 []                     []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall (Just _)    _         ((_:_), (_:_))                                 (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec fastafile currentambtuple@(currentambcode,currentstrand) allmappedambiguitystrs (currentregion:restofregions) = do
+  currenttandd <- DTime.getZonedTime
+  _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
+                         DL.++ "Processing region data associated with gene "
+                         DL.++ currentregiongenename
+                         DL.++ " ...")
+  --Ignore strandedness, find both the ambiguity mapped strings
+  --and the reverse complement ambiguity mapped strings.
+  --Grab locations of mapped am codes,
+  --and recurse.
+  fastaseq <- grabFastaSequence fastafile
+                                currentregion
+  substrlocs <- subStrLocations tsswinsizec
+                                (DL.map (fst) allmappedambiguitystrs)
+                                currentregion
+                                fastaseq
+  res <- ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
+                                                          fastafile
+                                                          currentambtuple
+                                                          allmappedambiguitystrs
+                                                          restofregions
+  return $ ( currentambcode
+           , DL.map (fst) allmappedambiguitystrs
+           , allcurrentregiondata
+           , substrlocs
+           ) : res
+    where
+      allcurrentregiondata  = [ currentregionchr
+                              , currentregiontss
+                              , currentregionstrand
+                              , currentregiongenename
+                              ]
+      currentregionchr      = DText.unpack (rchromosome currentregion)
+      currentregiontss      = DText.unpack (rtss currentregion)
+      currentregionstrand   = DText.unpack (rstrand currentregion)
+      currentregiongenename = DText.unpack (rgenename currentregion)
 
 --ambiguityCodesWithinRegionCheckSmall -> This function will
 --check to see if the ambiguity codes are within genes
 --2 kb (or custom TSS window size if provided)
 --of the genes TSS.
-ambiguityCodesWithinRegionCheckSmall :: FRIConfig -> (String,String) -> [(String,String)] -> [BioMartRegion] -> IO [(String,[String],[String],[[Int]])]
-ambiguityCodesWithinRegionCheckSmall _      ([],[])                                        []                     _                             = return []
-ambiguityCodesWithinRegionCheckSmall _      _                                              []                     _                             = return []
-ambiguityCodesWithinRegionCheckSmall _      ([],[])                                        _                      _                             = return []
-ambiguityCodesWithinRegionCheckSmall _      ((_:_),[])                                     (_:_)                  []                            = return []
-ambiguityCodesWithinRegionCheckSmall _      ((_:_),(_:_))                                  (_:_)                  []                            = return []
-ambiguityCodesWithinRegionCheckSmall _      ([],(_:_))                                     (_:_)                  []                            = return []
-ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,currentstrand) allmappedambiguitystrs (currentregion:restofregions) = do
+ambiguityCodesWithinRegionCheckSmall :: Maybe Text
+                                     -> [(Text,Vector Char)]
+                                     -> (String,String)
+                                     -> [(String,String)]
+                                     -> [BioMartRegion]
+                                     -> IO [(String,[String],[String],[[Int]])]
+ambiguityCodesWithinRegionCheckSmall _           []        ([],[])                                        []                     _                             = return []
+ambiguityCodesWithinRegionCheckSmall _           []        _                                              []                     _                             = return []
+ambiguityCodesWithinRegionCheckSmall _           []        ([],[])                                        _                      _                             = return []
+ambiguityCodesWithinRegionCheckSmall _           []        ((_:_),[])                                     (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall _           []        ((_:_),(_:_))                                  (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall _           []        ([],(_:_))                                     (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     (_:_)     ([], [])                                       []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     (_:_)     ([], [])                                       (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     (_:_)     ([], (_:_))                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     (_:_)     ([], (_:_))                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    (_:_)     ([], [])                                       []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    (_:_)     ([], [])                                       (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    (_:_)     ([], (_:_))                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    (_:_)     ([], (_:_))                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     _         ((_:_), [])                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     _         ((_:_), [])                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     _         ((_:_), (_:_))                                 []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall Nothing     _         ((_:_), (_:_))                                 (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    _         ((_:_), [])                                    []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    _         ((_:_), [])                                    (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    _         ((_:_), (_:_))                                 []                     []                            = return []
+ambiguityCodesWithinRegionCheckSmall (Just _)    _         ((_:_), (_:_))                                 (_:_)                  []                            = return []
+ambiguityCodesWithinRegionCheckSmall tsswinsizec fastafile currentambtuple@(currentambcode,currentstrand) allmappedambiguitystrs (currentregion:restofregions) = do
   currenttandd <- DTime.getZonedTime
   _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
                          DL.++ "Processing region data associated with gene "
                          DL.++ currentregiongenename
-                         DL.++ " ...")  
-  if | (ignorestrandedness config) == False
-     -> if | currentregionstrand == currentstrand
-           -> do --Grab locations of mapped am codes,
-                 --and recurse.
-                 fastaseq <- grabFastaSequence config
-                                               currentregion
-                 if | DE.isRight fastaseq
-                    -> do let Right finalfastafile = fastaseq
-                          substrlocs <- subStrLocations config
-                                                        (DL.map (fst) allmappedambiguitystrs)
-                                                        currentregion
-                                                        finalfastafile                  
-                          _ <- return $ [( currentambcode
-                                         , DL.map (fst) allmappedambiguitystrs
-                                         , allcurrentregiondata
-                                         , substrlocs
-                                        )]
-                          ambiguityCodesWithinRegionCheckSmall config
-                                                               currentambtuple
-                                                               allmappedambiguitystrs
-                                                               restofregions
-                    | otherwise
-                    -> do currenttandd <- DTime.getZonedTime
-                          _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
-                                                 DL.++ "Could not load and parse fasta file ...")
-                          _ <- return $ [( currentambcode
-                                         , DL.map (fst) allmappedambiguitystrs
-                                         , allcurrentregiondata
-                                         , [[]]
-                                        )]
-                          ambiguityCodesWithinRegionCheckSmall config
-                                                               currentambtuple
-                                                               allmappedambiguitystrs
-                                                               restofregions
-           | otherwise
-           -> do --Current ambiguity codes and mapped strings
-                 --are not correct for region strand
-                 --(i.e. "-1" != "1" or "1" != "-1").
-                 currenttandd <- DTime.getZonedTime
-                 let numofspaces      = DL.length ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] ")
-                 let printnumofspaces = DL.replicate numofspaces ' '
-                 _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
-                                        DL.++ "Could not process region data associated with current ambiguity code "
-                                        DL.++ currentambcode 
-                                        DL.++ ":\n"
-                                        DL.++ printnumofspaces
-                                        DL.++ currentambcode
-                                        DL.++ " strand orientation is "
-                                        DL.++ currentstrand
-                                        DL.++ " and "
-                                        DL.++ currentregiongenename
-                                        DL.++ " strand orientation is "
-                                        DL.++ currentregionstrand
-                                        DL.++ " ..." )
-                 ambiguityCodesWithinRegionCheckSmall config
-                                                      currentambtuple
-                                                      allmappedambiguitystrs
-                                                      restofregions
-     | otherwise
-     -> do --Ignore strandedness, find both the ambiguity mapped strings
-           --and the reverse complement ambiguity mapped strings.
-           fastaseq <- grabFastaSequence config
+                         DL.++ " ...")
+  if | currentregionstrand == currentstrand
+     -> do --Grab locations of mapped am codes,
+           --and recurse.
+           fastaseq <- grabFastaSequence fastafile
                                          currentregion
-           if | DE.isRight fastaseq
-              -> do let Right finalfastafile = fastaseq
-                    substrlocs <- subStrLocations config
-                                                  (DL.map (fst) allmappedambiguitystrs)
-                                                  currentregion
-                                                  finalfastafile
-                    _ <- return $ [( currentambcode
-                                  , DL.map (fst) allmappedambiguitystrs
-                                  , allcurrentregiondata
-                                  , substrlocs
-                                  )]
-                    ambiguityCodesWithinRegionCheckSmall config
-                                                         currentambtuple
-                                                         allmappedambiguitystrs
-                                                         restofregions
-              | otherwise
-              -> do currenttandd <- DTime.getZonedTime
-                    _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
-                                           DL.++ "Could not load and parse fasta file ...")
-                    _ <- return $ [( currentambcode
-                                  , DL.map (fst) allmappedambiguitystrs
-                                  , allcurrentregiondata
-                                  , [[]]
-                                  )]
-                    ambiguityCodesWithinRegionCheckSmall config
-                                                         currentambtuple
-                                                         allmappedambiguitystrs
-                                                         restofregions
+           substrlocs <- subStrLocations tsswinsizec
+                                         (DL.map (fst) allmappedambiguitystrs)
+                                         currentregion
+                                         fastaseq 
+           res <- ambiguityCodesWithinRegionCheckSmall tsswinsizec
+                                                       fastafile
+                                                       currentambtuple
+                                                       allmappedambiguitystrs
+                                                       restofregions
+           return $ ( currentambcode
+                    , DL.map (fst) allmappedambiguitystrs
+                    , allcurrentregiondata
+                    , substrlocs
+                    ) : res
+     | otherwise
+     -> do --Current ambiguity codes and mapped strings
+           --are not correct for region strand
+           --(i.e. "-1" != "1" or "1" != "-1").
+           currenttandd <- DTime.getZonedTime
+           let numofspaces      = DL.length ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] ")
+           let printnumofspaces = DL.replicate numofspaces ' '
+           _ <- SIO.putStrLn ("[" DL.++ (showPrettyZonedTime currenttandd) DL.++ "] "
+                                  DL.++ "Could not process region data associated with current ambiguity code "
+                                  DL.++ currentambcode 
+                                  DL.++ ":\n"
+                                  DL.++ printnumofspaces
+                                  DL.++ currentambcode
+                                  DL.++ " strand orientation is "
+                                  DL.++ currentstrand
+                                  DL.++ " and "
+                                  DL.++ currentregiongenename
+                                  DL.++ " strand orientation is "
+                                  DL.++ currentregionstrand
+                                  DL.++ " ..." )
+           ambiguityCodesWithinRegionCheckSmall tsswinsizec
+                                                fastafile
+                                                currentambtuple
+                                                allmappedambiguitystrs
+                                                restofregions
     where
       allcurrentregiondata  = [ currentregionchr
                               , currentregiontss
@@ -569,24 +601,81 @@ ambiguityCodesWithinRegionCheckSmall config currentambtuple@(currentambcode,curr
       currentregionstrand   = DText.unpack (rstrand currentregion)
       currentregiongenename = DText.unpack (rgenename currentregion)
 
+--ambiguityCodesWithinRegionCheckIgnoreStrand -> This function will
+--check to see if the ambiguity codes are within genes
+--2 kb (or custom TSS window size if provided)
+--of the genes TSS.
+ambiguityCodesWithinRegionCheckIgnoreStrand :: Maybe Text
+                                            -> [(Text,Vector Char)]
+                                            -> [(String,String)]
+                                            -> [[(String,String)]]
+                                            -> [BioMartRegion]
+                                            -> IO [[(String,[String],[String],[[Int]])]]
+ambiguityCodesWithinRegionCheckIgnoreStrand _           []        []                              []                                                              _          = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand _           []        _                               []                                                              _          = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand _           []        []                              _                                                               _          = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand _           (_:_)     []                              []                                                              []         = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand _           (_:_)     []                              []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand _           (_:_)     []                              (_:_)                                                           []         = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand _           (_:_)     []                              (_:_)                                                           (_:_)      = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand Nothing     _         [(_, _)]                        []                                                              []         = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand Nothing     _         [(_, _)]                        []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand Nothing     _         ((_, _):_:_)                    []                                                              []         = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand Nothing     _         ((_, _):_:_)                    []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand (Just _)    _         [(_, _)]                        []                                                              []         = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand (Just _)    _         [(_, _)]                        []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand (Just _)    _         ((_, _):_:_)                    []                                                              []         = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand (Just _)    _         ((_, _):_:_)                    []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheckIgnoreStrand tsswinsizec fastafile (currentambcode:restofambcodes) (currentmappedambiguitystrgroup:restofmappedambiguitystrgroups) allregions = do
+  ambcodeswithinregioncheck <- ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
+                                                                                fastafile
+                                                                                currentambcode
+                                                                                currentmappedambiguitystrgroup
+                                                                                allregions
+  res <- ambiguityCodesWithinRegionCheckIgnoreStrand tsswinsizec
+                                                     fastafile
+                                                     restofambcodes
+                                                     restofmappedambiguitystrgroups
+                                                     allregions
+  return $ ambcodeswithinregioncheck : res
+
 --ambiguityCodesWithinRegionCheck -> This function will
 --check to see if the ambiguity codes are within genes
 --2 kb (or custom TSS window size if provided)
 --of the genes TSS.
-ambiguityCodesWithinRegionCheck :: FRIConfig -> [(String,String)] -> [[(String,String)]] -> [BioMartRegion] -> IO [[(String,[String],[String],[[Int]])]]
-ambiguityCodesWithinRegionCheck _      []                              []                                                              _          = return []
-ambiguityCodesWithinRegionCheck _      _                               []                                                              _          = return []
-ambiguityCodesWithinRegionCheck _      []                              _                                                               _          = return []
-ambiguityCodesWithinRegionCheck config (currentambcode:restofambcodes) (currentmappedambiguitystrgroup:restofmappedambiguitystrgroups) allregions = do
-  ambcodeswithinregioncheck <- ambiguityCodesWithinRegionCheckSmall config
+ambiguityCodesWithinRegionCheck :: Maybe Text
+                                -> [(Text,Vector Char)]
+                                -> [(String,String)]
+                                -> [[(String,String)]]
+                                -> [BioMartRegion]
+                                -> IO [[(String,[String],[String],[[Int]])]]
+ambiguityCodesWithinRegionCheck _           []        []                              []                                                              _          = return []
+ambiguityCodesWithinRegionCheck _           []        _                               []                                                              _          = return []
+ambiguityCodesWithinRegionCheck _           []        []                              _                                                               _          = return []
+ambiguityCodesWithinRegionCheck _           (_:_)     []                              []                                                              []         = return []
+ambiguityCodesWithinRegionCheck _           (_:_)     []                              []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheck _           (_:_)     []                              (_:_)                                                           []         = return []
+ambiguityCodesWithinRegionCheck _           (_:_)     []                              (_:_)                                                           (_:_)      = return []
+ambiguityCodesWithinRegionCheck Nothing     _         [(_, _)]                        []                                                              []         = return []
+ambiguityCodesWithinRegionCheck Nothing     _         [(_, _)]                        []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheck Nothing     _         ((_, _):_:_)                    []                                                              []         = return []
+ambiguityCodesWithinRegionCheck Nothing     _         ((_, _):_:_)                    []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheck (Just _)    _         [(_, _)]                        []                                                              []         = return []
+ambiguityCodesWithinRegionCheck (Just _)    _         [(_, _)]                        []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheck (Just _)    _         ((_, _):_:_)                    []                                                              []         = return []
+ambiguityCodesWithinRegionCheck (Just _)    _         ((_, _):_:_)                    []                                                              (_:_)      = return []
+ambiguityCodesWithinRegionCheck tsswinsizec fastafile (currentambcode:restofambcodes) (currentmappedambiguitystrgroup:restofmappedambiguitystrgroups) allregions = do
+  ambcodeswithinregioncheck <- ambiguityCodesWithinRegionCheckSmall tsswinsizec
+                                                                    fastafile
                                                                     currentambcode
                                                                     currentmappedambiguitystrgroup
                                                                     allregions
-  _ <- return $ [ambcodeswithinregioncheck]
-  ambiguityCodesWithinRegionCheck config
-                                  restofambcodes
-                                  restofmappedambiguitystrgroups
-                                  allregions
+  res <- ambiguityCodesWithinRegionCheck tsswinsizec
+                                         fastafile
+                                         restofambcodes
+                                         restofmappedambiguitystrgroups
+                                         allregions
+  return $ ambcodeswithinregioncheck : res
  
 --allStrGenerationSmall -> This function will
 --return all substring locations with current
@@ -771,7 +860,7 @@ variantsAmbiguityCodesCheckerSmaller xs@(currentvariant,currentregion,_) (y:ys) 
   if | currentregionstrand == "-1"
      -> if | (read y :: Int) >= (read currentvariantstartpos :: Int) &&
              (read currentvariantstartpos :: Int) >= ((((read y) - z) + 1) :: Int)
-           ->[y] DL.++ (variantsAmbiguityCodesCheckerSmaller xs ys z)
+           -> [y] DL.++ (variantsAmbiguityCodesCheckerSmaller xs ys z)
            | otherwise
            -> variantsAmbiguityCodesCheckerSmaller xs ys z
      --TSS reads in forward direction (1).
