@@ -109,9 +109,16 @@ If you are **NOT** on a M1 mac, please build the project using the following:
 ```
 
 ## Example Usage
-**FRI** is easy to use, as it only requires a single command-line positional argument, the configuration YAML:
+**FRI** is easy to use, as it only requires a single command-line positional argument, the configuration YAML.
+
+If you are on a M1 mac, please run the project using the following:
 ```
 % stack exec --arch aarch64 fasta-region-inspector-exe /path/to/configuration.yaml
+```
+
+If you are **NOT** a M1 mac, please run the project using the following:
+```
+% stack exec fasta-region-inspector-exe /path/to/configuration.yaml
 ```
 
 
