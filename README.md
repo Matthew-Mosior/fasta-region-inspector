@@ -67,7 +67,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
 
 The following keys are **required**:
 - ```Fasta``` -> The filepath to the FASTA file. (String)
-- ```Variants``` -> A [compact nested mappings]((https://yaml.org/spec/1.2.2/#chapter-2-language-overview) (see  for more information).
+- ```Variants``` -> A [compact nested mappings](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) (see [below](https://github.com/Matthew-Mosior/Fasta-Region-Inspector/blob/main/README.md#variant-type) for more information).
 - ```Ambiguity_Codes``` -> An array of ambiguity codes to search against. (String)
 - ```Output_Directory``` -> The filepath to the output directory (must already exist). (String)
 - ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the wget system call. (Boolean)
