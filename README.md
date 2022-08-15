@@ -73,7 +73,7 @@ The following keys are **required**:
 - ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the wget system call. (Boolean)
 - ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
 
-The following keys for the [compact nested mappings]((https://yaml.org/spec/1.2.2/#chapter-2-language-overview) are **optional**:
+The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across.
 
 ## Variant Type
