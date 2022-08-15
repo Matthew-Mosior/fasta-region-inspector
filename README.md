@@ -34,5 +34,18 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
       - [smallGrabFastaSequence](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L514)
   - Previously, the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) consumed memory in such a way that (using a concatenated amalgamation of all GRCh38 homo_sapiens genome assembly chromosome-level fastas) during a typical run that you would be required to have access to and run the software with at least 30+ GB of memory.
 - A new, YAML input file format.
-  - The new [YAML](https://yaml.org/) input file format
+  - The new [YAML](https://yaml.org/) input file format replaces the [custom command-line argument string](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L840) required to run the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) with a new simple key-value format:
+    - ```
+      Variants:
+        - Sample: 'SMP1'
+          HGNC_Symbol: 'AFF3'
+          Chromosome: 'chr2'
+          Start_Position: '100007433'
+          End_Position: '100007433'
+          Reference_Allele: 'G'
+          Alternate_Allele: 'A'
+          ENST: 'ENST00000409579'
+        - Sample: 'SMP2'
+        ...
+      ```
 
