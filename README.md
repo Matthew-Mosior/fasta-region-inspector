@@ -17,8 +17,6 @@ This tool aims to answer common SHM variant-level questions in software package 
 - A simple, YAML input file format.
 - Clean, informative stdout logging.
 
-## Theory and Implementation
-
 ## Improvements from Previous Implemenation
 This version of **FRI** is vastly improved upon from the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) in numerous ways, including:
 - Migration from single script to [Stack](https://docs.haskellstack.org/en/stable/README/) project
@@ -62,3 +60,20 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
     - The [new implemenation](https://gitlab.haskell.org/ghc/ghc/-/commit/7f72b540288bbdb32a6750dd64b9d366501ed10c) of GC has a concurrent mark & sweep garbage collector to manage the old generation. The concurrent nature of this collector typically results in significantly reduced maximum and mean pause times in applications with large working sets.
       - For more details, please see the following [presentation](https://bgamari.github.io/media/2018-11-18-nonmoving-gc-for-ghc.pdf).
   - You can switch between the two forms of GC using the GHC command-line argument ```-with-rtsopts=-xn```.
+
+## Configuration YAML
+
+**FRI** utilizes a configuration YAML file to provide the necessary components for a successful run.
+
+The following keys are **required**:
+- ```Fasta``` -> The filepath to the FASTA file. (String)
+- ```Variants``` -> A [compact nested mappings]((https://yaml.org/spec/1.2.2/#chapter-2-language-overview) (see  for more information).
+- ```Ambiguity_Codes``` -> An array of ambiguity codes to search against. (String)
+- ```Output_Directory``` -> The filepath to the output directory (must already exist). (String)
+- ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the wget system call. (Boolean)
+- ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
+
+The following keys for the [compact nested mappings]((https://yaml.org/spec/1.2.2/#chapter-2-language-overview) are **optional**:
+- ```TSS_Window_Size``` -> The TSS window size to search across.
+
+## Variant Type
