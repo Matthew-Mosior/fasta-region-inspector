@@ -78,12 +78,6 @@ The following keys are **optional**:
 
 ## Variant Type
 
-## Example Usage
-**FRI** is easy to use, as it only requires a single command-line positional argument, the configuration YAML:
-```
-% stack exec --arch aarch64 fasta-region-inspector-exe /path/to/configuration.yaml
-```
-
 ## Building the project
 This software was developed on a M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on any compatible platform.
 
@@ -95,6 +89,12 @@ If you are on a M1 mac, please build the project using the following:
 If you are **NOT** on a M1 mac, please build the project using the following:
 ```
 % stack build
+```
+
+## Example Usage
+**FRI** is easy to use, as it only requires a single command-line positional argument, the configuration YAML:
+```
+% stack exec --arch aarch64 fasta-region-inspector-exe /path/to/configuration.yaml
 ```
 
 
