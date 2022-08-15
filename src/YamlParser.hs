@@ -5,19 +5,6 @@
 {-=the configuration YAML file.=-}
 
 
-{-Language extension.-}
-
-{-# LANGUAGE Strict            #-}
-{-# LANGUAGE StrictData        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE DeriveGeneric     #-}
-
-{---------------------}
-
-
 {-Module.-}
 
 module YamlParser where

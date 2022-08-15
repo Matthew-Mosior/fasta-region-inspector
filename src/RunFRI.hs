@@ -5,16 +5,6 @@
 {-=launch the FRI main runner function.=-}
 
 
-{-Language extension.-}
-
-{-# LANGUAGE Strict      #-}
-{-# LANGUAGE StrictData  #-}
-{-# LANGUAGE MultiWayIf  #-}
-{-# LANGUAGE QuasiQuotes #-}
-
-{---------------------}
-
-
 {-Module.-}
 
 module RunFRI where
@@ -95,6 +85,7 @@ ambiguityCodesCheck config = if | DL.all
                                 | otherwise
                                 -> False 
   where
+    nucleotideambiguitycodes :: [Char]
     nucleotideambiguitycodes = ['A'
                                ,'G'
                                ,'C'

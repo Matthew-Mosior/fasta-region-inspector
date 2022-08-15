@@ -19,7 +19,14 @@
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 #resolver:
 #  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/22.yaml
-resolver: nightly-2022-01-15
+resolver: nightly-2022-08-15 
+
+  #build:
+  #  library-profiling: true
+  #  executable-profiling: true
+
+extra-deps:
+ - compact-0.2.0.0@sha256:75ef98cb51201b4a0d6de95cbbb62be6237c092a3d594737346c70c5d56c2380,2413
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
