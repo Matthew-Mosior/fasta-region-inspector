@@ -21,6 +21,10 @@ This tool aims to answer common SHM variant-level questions in software package 
 
 ## Improvements from Previous Implemenation
 This version of **FRI** is vastly improved upon from the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) in numerous ways, including:
+- Migration from single script to [Stack](https://docs.haskellstack.org/en/stable/README/) project
+  - Stack is a cross-platform program for developing Haskell projects.
+  - It creates completely reproducible and robust development environments.
+  - This makes ongoing maintenance, updates, bugfixes, any and all changes to the codebase a breeze.
 - A completely re-worked internal memory representation of user-defined FASTA data.
   - The old implementation loaded the FASTA file in a strict ByteString, and then parsed it into an appropriate data structure using the [elynx-seq](https://hackage.haskell.org/package/elynx-seq) library.
   - There's nothing inherently wrong with the approach, but it doesn't scale well with sequencing data as this type of data is typically very large.  That means the garbarge collector (GC) has to walk through this in-memory structure many times for all the functions that operate on this data.
