@@ -23,7 +23,7 @@ This tool aims to answer common SHM variant-level questions in software package 
 This version of **FRI** is vastly improved upon from the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) in numerous ways, including:
 - A completely re-worked internal memory representation of user-defined FASTA data.
   - The old implementation loaded the FASTA file in a strict ByteString, and then parsed it into an appropriate data structure using the [elynx-seq](https://hackage.haskell.org/package/elynx-seq) library.
-  - There's nothing inherently wrong with the approach, but it doesn't scale well with sequencing data as this type of data is typically very large.  That means the GC has to walk through this in-memory structure many times for all the functions that operate on this data.
+  - There's nothing inherently wrong with the approach, but it doesn't scale well with sequencing data as this type of data is typically very large.  That means the garbarge collector (GC) has to walk through this in-memory structure many times for all the functions that operate on this data.
     - These functions include:
       - [ambiguityCodesWithinRegionCheck](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L381)
       - [ambiguityCodesWithinRegionCheckSmall](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L396)
@@ -49,3 +49,4 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
         ...
       ```
   - The rest of the command-line arguments are replaced with appropriate compact nested mappings (see [Example 2.12 Compact Nested Mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview))
+- Switching from the Copying Collector GC to the Non-Moving GC
