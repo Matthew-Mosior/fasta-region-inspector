@@ -15,6 +15,7 @@ This tool aims to answer common SHM variant-level questions in software package 
 - Excellent runtime performance in a robust, functional implementation.
 - Minimized memory usage.
 - A simple, YAML input file format.
+- Clean, informative stdout logging.
 
 ## Theory and Implementation
 
