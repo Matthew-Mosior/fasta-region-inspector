@@ -53,4 +53,4 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
         ...
       ```
   - The rest of the command-line arguments are replaced with appropriate compact nested mappings (see [Example 2.12 Compact Nested Mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview))
-- Switching from the Copying Collector GC to the Non-Moving GC
+- Switching from the [Copying Collector GC](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/rts/storage/gc/copying) to the new [Non-Moving GC](https://www.cs.unh.edu/~dietz/papers/gamari2020alligatordemo.pdf)
