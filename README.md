@@ -57,7 +57,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
   - [GHC](https://www.haskell.org/ghc/), the the de-facto compiler for the Haskell programming language.
   - GHC initially had only one implementation of GC, namely the Copy Collector GC.
     - This form of GC has a stop-the-world approach, cause the program to pause as the memory usage raises to a level where de-allocation is necessary.
-  - GHC now has a new implemenation of the GC, the Non-Moving GC.
+  - GHC now has a new implemenation of the GC, the Non-Moving GC, which this program utilizes.
     - The [new implemenation](https://gitlab.haskell.org/ghc/ghc/-/commit/7f72b540288bbdb32a6750dd64b9d366501ed10c) of GC has a concurrent mark & sweep garbage collector to manage the old generation. The concurrent nature of this collector typically results in significantly reduced maximum and mean pause times in applications with large working sets.
       - For more details, please see the following [presentation](https://bgamari.github.io/media/2018-11-18-nonmoving-gc-for-ghc.pdf).
   - You can switch between the two forms of GC using the GHC command-line argument ```-with-rtsopts=-xn```.
