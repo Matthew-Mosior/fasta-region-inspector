@@ -64,7 +64,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
     - The [new implemenation](https://gitlab.haskell.org/ghc/ghc/-/commit/7f72b540288bbdb32a6750dd64b9d366501ed10c) of GC has a concurrent mark & sweep garbage collector to manage the old generation. The concurrent nature of this collector typically results in significantly reduced maximum and mean pause times in applications with large working sets.
       - For more details, please see the following [presentation](https://bgamari.github.io/media/2018-11-18-nonmoving-gc-for-ghc.pdf).
   - You can switch between the two forms of GC using the GHC command-line argument ```-with-rtsopts=-xn```.
-- Dramatic runtime performance increase
+- Dramatic runtime performance improvement
   - After all of the above changes, there is ~160X speedup in runtime (benchmarks up-coming) in the examples run locally so far (~8 hrs down to ~3 minutes).
 
 ## Configuration YAML
