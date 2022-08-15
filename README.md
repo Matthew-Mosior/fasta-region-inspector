@@ -48,4 +48,4 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
         - Sample: 'SMP2'
         ...
       ```
-
+  - The rest of the command-line arguments are replaced with appropriate compact nested mappings (see [Example 2.12 Compact Nested Mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview))
