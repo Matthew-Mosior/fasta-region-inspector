@@ -41,7 +41,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
       - Data stored in a Compact has no garbage collection overhead. The garbage collector considers the whole Compact to be alive if there is a reference to any object within it.
       - A Compact can be serialized, stored, and deserialized again. The serialized data can only be deserialized by the exact binary that created it, but it can be stored indefinitely before deserialization.
 - A new, YAML input file format.
-  - The new [YAML](https://yaml.org/) input file format replaces the [custom command-line argument string](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L840) required to run the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) with a new simple key-value format:
+  - The new [YAML](https://yaml.org/) input file format replaces the [custom command-line argument string](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L840) required to run the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) with a simple key-value format:
     - ```
       Variants:
         - Sample: 'SMP1'
