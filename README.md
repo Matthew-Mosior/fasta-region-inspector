@@ -77,6 +77,7 @@ The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across.
 
 ## Variant Type
+The ```Variant``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) 
 
 ## Building the project
 This software was developed on a M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on any compatible platform.
