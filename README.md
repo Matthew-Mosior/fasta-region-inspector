@@ -11,7 +11,7 @@ This bioinformatics tool gives researchers the ability to answer the following q
 - Where do user-defined mapped ambiguity strings lie within 2 kb of the TSS?
 - Amalgamating the previous 2 questions, which variant(s) are found within a mapped ambiguity string, that also lie within 2 kb of the TSS?
 
-This tool aims to answer common SHM variant-level question while providing:
+This tool aims to answer common SHM variant-level questions in software package that provides:
 - Excellent runtime performance in a robust, functional implementation.
 - Minimized memory usage.
 - A simple, YAML input file format.
