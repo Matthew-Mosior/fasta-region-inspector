@@ -65,7 +65,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
       - For more details, please see the following [presentation](https://bgamari.github.io/media/2018-11-18-nonmoving-gc-for-ghc.pdf).
   - You can switch between the two forms of GC using the GHC command-line argument ```-with-rtsopts=-xn```.
 - Dramatic runtime performance improvement
-  - After all of the above changes, there is ~160X speedup in runtime (benchmarks up-coming) in the examples run locally so far (~8 hrs down to ~3 minutes).
+  - After all of the above changes, there is ~160X speedup in runtime (benchmarks up-coming) in the examples run locally so far (comparable tests are showing ~8 hrs down to ~3 minutes).
 
 ## Configuration YAML
 
