@@ -11,13 +11,16 @@ This bioinformatics tool gives researchers the ability to answer the following q
 - Where do user-defined mapped ambiguity strings lie within 2 kb of the TSS?
 - Amalgamating the previous 2 questions, which variant(s) are found within a mapped ambiguity string, that also lie within 2 kb of the TSS?
 
+## Improvements from Previous Implemenation
+
+### Overview
 This tool aims to answer common SHM variant-level questions in a software package that provides:
 - Excellent runtime performance in a robust, functional implementation.
 - Minimized memory usage.
 - A simple, YAML input file format.
 - Clean, informative stdout logging.
 
-## Improvements from Previous Implemenation
+### Old vs. New
 This version of **FRI** is vastly improved upon from the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) in numerous ways, including:
 - Migration from single script to [Stack](https://docs.haskellstack.org/en/stable/README/) project
   - Stack is a cross-platform program for developing Haskell projects.
