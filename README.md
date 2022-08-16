@@ -69,7 +69,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
   - After all of the above changes (moving to stack or the new YAML input file doesn't affect runtime performance, but the rest of the points do), there is ~160X speedup in runtime (benchmarks up-coming) in the examples run locally so far (comparable tests are showing ~8 hrs down to ~3 minutes).
   - In general, the more ambiguity codes and variants there are to be analyzed by **FRI**, the larger the runtime disparity between the old and new version.
 
-### Conclusion so far
+### Conclusion
 Don't use the old version!
 
 ## Configuration YAML
