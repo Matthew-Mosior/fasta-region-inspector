@@ -172,53 +172,56 @@ fastaRegionInspect config = do
                                                                         (DL.map 
                                                                         (\xs -> (DL.take 6 xs) 
                                                                         ++ [DL.intercalate "," (DL.drop 6 xs)])) 
-                                                                        (prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss)) 
+                                                                        (prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss))
+                                --Prepare final amalgamated file.
+                                let finalvariantfile = amalgamateFinalVariantData printreadywithintss
+                                                                                  printreadyvariantsinambiguitycodesandtss 
                                 --Prepare final print ready files with headers.
                                 currenttandd <- DTime.getZonedTime
                                 _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                                       ++ "Preparing to print output CSV files ...")
-                                let finalprintreadywithintss = [[ "Variant"
-                                                                , "Region"
-                                                                , "Variant_Within_Region"
-                                                               ]] 
-                                                               ++ printreadywithintss
-                                let withintsscsv = toCSV finalprintreadywithintss
-                                let finalprintreadyambiguitycodeswithintss = [[ "Ambiguity_Code"
-                                                                              , "Mapped_Nucleotide_String"
-                                                                              , "Chromosome"
-                                                                              , "TSS"
-                                                                              , "Strand"
-                                                                              , "SYMBOL"
-                                                                              , "Ambiguity_Code_String_Locations_Within_TSS"
-                                                                             ]] 
-                                                                             ++ printreadyambiguitycodeswithintss
+                                                       ++ "Preparing to print output CSV files ...") 
+                                let finalprintreadyambiguitycodeswithintss = [ "Ambiguity_Code"
+                                                                             , "Mapped_Nucleotide_String"
+                                                                             , "Chromosome"
+                                                                             , "TSS"
+                                                                             , "Strand"
+                                                                             , "SYMBOL"
+                                                                             , "Ambiguity_Code_String_Locations_Within_TSS"
+                                                                             ] 
+                                                                             : printreadyambiguitycodeswithintss
                                 let ambiguitycodeswithintsscsv = toCSV finalprintreadyambiguitycodeswithintss
-                                let finalprintreadyvariantsinambiguitycodesandtss = [[ "Variant"
-                                                                                     , "Region"
-                                                                                     , "Variant_Within_Region"
-                                                                                     , "Ambiguity_Code"
-                                                                                     , "Mapped_Nucleotide_String"
-                                                                                     , "Ambiguity_Code_String_Locations_Within_TSS"
-                                                                                    ]]
-                                                                                    ++ printreadyvariantsinambiguitycodesandtss
-                                let variantsinambiguitycodesandtsscsv = toCSV finalprintreadyvariantsinambiguitycodesandtss
+                                let printreadyfinalvariantfile = [ "Variant"
+                                                                 , "Region"
+                                                                 , "Variant_Within_Region"
+                                                                 , "Ambiguity_Code"
+                                                                 , "Mapped_Nucleotide_String"
+                                                                 , "Ambiguity_Code_String_Locations_Within_TSS"
+                                                                 ]
+                                                                 : finalvariantfile  
+                                let finalvariantfilecsv = toCSV printreadyfinalvariantfile
                                 --Print withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss to files.
                                 currenttandd <- DTime.getZonedTime
                                 _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                                       ++ "Printing output CSV files ...") 
-                                writeCSV config
-                                         withintsscsv
-                                         "variants.csv"
-                                writeCSV config
-                                         ambiguitycodeswithintsscsv
-                                         "ambiguity_codes.csv"
-                                writeCSV config
-                                         variantsinambiguitycodesandtsscsv
-                                         "variants_in_ambiguity_codes.csv"
-                                --Shut down FRI.
-                                currenttandd <- DTime.getZonedTime
-                                SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                                  ++ "Shutting down Fasta Region Inspector v0.1.0.0 ...")      
+                                                       ++ "Printing output CSV files ...")
+                                if | writeambiguitycodes config
+                                   -> do writeCSV config
+                                                  ambiguitycodeswithintsscsv
+                                                  "ambiguity_codes.csv"
+                                         writeCSV config
+                                                  finalvariantfilecsv 
+                                                  "variants_in_ambiguity_codes.csv"
+                                         --Shut down FRI.
+                                         currenttandd <- DTime.getZonedTime
+                                         SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
+                                                           ++ "Shutting down Fasta Region Inspector v0.1.0.0 ...")
+                                   | otherwise
+                                   -> do writeCSV config
+                                                  finalvariantfilecsv 
+                                                  "variants_in_ambiguity_codes.csv"
+                                         --Shut down FRI.
+                                         currenttandd <- DTime.getZonedTime
+                                         SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
+                                                           ++ "Shutting down Fasta Region Inspector v0.1.0.0 ...")
                           | otherwise
                           -> do ambiguitycodeswithintss <- ambiguityCodesWithinRegionCheck
                                                            (tsswindowsize config)
@@ -246,51 +249,55 @@ fastaRegionInspect config = do
                                                                         (\xs -> (DL.take 6 xs)
                                                                         ++ [DL.intercalate "," (DL.drop 6 xs)]))
                                                                         (prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss))
+                                --Prepare final amalgamated file.
+                                let finalvariantfile = amalgamateFinalVariantData printreadywithintss
+                                                                                  printreadyvariantsinambiguitycodesandtss 
                                 --Prepare final print ready files with headers.
                                 currenttandd <- DTime.getZonedTime
                                 _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                        ++ "Preparing to print output CSV files ...")
-                                let finalprintreadywithintss = [[ "Variant"
-                                                                , "Region"
-                                                                , "Variant_Within_Region"
-                                                               ]]
-                                                               ++ printreadywithintss
-                                let withintsscsv = toCSV finalprintreadywithintss
-                                let finalprintreadyambiguitycodeswithintss = [[ "Ambiguity_Code"
-                                                                              , "Mapped_Nucleotide_String"
-                                                                              , "Chromosome"
-                                                                              , "TSS"
-                                                                              , "Strand"
-                                                                              , "SYMBOL"
-                                                                              , "Ambiguity_Code_String_Locations_Within_TSS"
-                                                                             ]]
-                                                                             ++ printreadyambiguitycodeswithintss
+                                let finalprintreadyambiguitycodeswithintss = [ "Ambiguity_Code"
+                                                                             , "Mapped_Nucleotide_String"
+                                                                             , "Chromosome"
+                                                                             , "TSS"
+                                                                             , "Strand"
+                                                                             , "SYMBOL"
+                                                                             , "Ambiguity_Code_String_Locations_Within_TSS"
+                                                                             ]
+                                                                             : printreadyambiguitycodeswithintss
                                 let ambiguitycodeswithintsscsv = toCSV finalprintreadyambiguitycodeswithintss
-                                let finalprintreadyvariantsinambiguitycodesandtss = [[ "Variant"
-                                                                                     , "Region"
-                                                                                     , "Variant_Within_Region"
-                                                                                     , "Ambiguity_Code"
-                                                                                     , "Mapped_Nucleotide_String"
-                                                                                     , "Ambiguity_Code_String_Locations_Within_TSS"
-                                                                                    ]]
-                                                                                    ++ printreadyvariantsinambiguitycodesandtss
-                                let variantsinambiguitycodesandtsscsv = toCSV finalprintreadyvariantsinambiguitycodesandtss
+                                let printreadyfinalvariantfile = [ "Variant"
+                                                                 , "Region"
+                                                                 , "Variant_Within_Region"
+                                                                 , "Ambiguity_Code"
+                                                                 , "Mapped_Nucleotide_String"
+                                                                 , "Ambiguity_Code_String_Locations_Within_TSS"
+                                                                 ]
+                                                                 : finalvariantfile 
+                                --let variantsinambiguitycodesandtsscsv = toCSV finalprintreadyvariantsinambiguitycodesandtss
+                                let finalvariantfilecsv = toCSV printreadyfinalvariantfile 
                                 --Print withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss to files.
                                 currenttandd <- DTime.getZonedTime
                                 _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
                                                        ++ "Printing output CSV files ...")
-                                writeCSV config
-                                         withintsscsv
-                                         "variants.csv"
-                                writeCSV config
-                                         ambiguitycodeswithintsscsv
-                                         "ambiguity_codes.csv"
-                                writeCSV config
-                                         variantsinambiguitycodesandtsscsv
-                                         "variants_in_ambiguity_codes.csv"
-                                --Shut down FRI.
-                                currenttandd <- DTime.getZonedTime
-                                SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                                  ++ "Shutting down Fasta Region Inspector v0.1.0.0 ...")
+                                if | writeambiguitycodes config
+                                   -> do writeCSV config
+                                                  ambiguitycodeswithintsscsv
+                                                  "ambiguity_codes.csv"
+                                         writeCSV config
+                                                  finalvariantfilecsv
+                                                  "variants_in_ambiguity_codes.csv"
+                                         --Shut down FRI.
+                                         currenttandd <- DTime.getZonedTime
+                                         SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
+                                                           ++ "Shutting down Fasta Region Inspector v0.1.0.0 ...")
+                                   | otherwise
+                                   -> do writeCSV config
+                                                  finalvariantfilecsv 
+                                                  "variants_in_ambiguity_codes.csv"
+                                         --Shut down FRI.
+                                         currenttandd <- DTime.getZonedTime
+                                         SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
+                                                           ++ "Shutting down Fasta Region Inspector v0.1.0.0 ...")
 
 {--------------------}

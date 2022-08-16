@@ -28,13 +28,14 @@ import GHC.Generics
 
 {-Custom YAML input file Datatype and related functions.-}
 
-data FRIConfig = FRIConfig { fasta              :: Text
-                           , variants           :: [Variants]
-                           , ambiguitycodes     :: [Text]
-                           , outputdirectory    :: Text
-                           , tsswindowsize      :: Maybe Text
-                           , keepbiomart        :: Bool
-                           , ignorestrandedness :: Bool
+data FRIConfig = FRIConfig { fasta               :: Text
+                           , variants            :: [Variants]
+                           , ambiguitycodes      :: [Text]
+                           , outputdirectory     :: Text
+                           , tsswindowsize       :: Maybe Text
+                           , keepbiomart         :: Bool
+                           , ignorestrandedness  :: Bool
+                           , writeambiguitycodes :: Bool
                            } deriving (Eq,Show,Read)
 
 data Variants = Variants { vsample     :: Text
@@ -59,6 +60,7 @@ parseFRIConfig v = FRIConfig
   <*> v .:? "TSS_Window_Size"
   <*> v .:  "Keep_BioMart"
   <*> v .:  "Ignore_Strandedness"
+  <*> v .:  "Write_Ambiguity_Codes"
 
 instance FromJSON Variants where
   parseJSON (Object v) = parseVariants v
