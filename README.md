@@ -38,7 +38,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
       - [grabFastaSequence](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L508)
       - [smallGrabFastaSequence](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD/blob/master/src/fri.hs#L514)
   - Previously, the [old version](https://github.com/Matthew-Mosior/Fasta-Region-Inspector-OLD) consumed memory in such a way that (using a concatenated amalgamation of all GRCh38 homo_sapiens genome assembly chromosome-level fastas) during a typical run that you would be required to have access to and run the software with at least 40+ GB of memory.
-  - This same run now only requires about as much memory as 2X the size of the FASTA file.
+  - This same run now only requires about as much memory as ~2X the size of the FASTA file.
   - The minimized memory requirement is based on the usage of [compact regions](http://ezyang.com/papers/ezyang15-cnf.pdf).
     - [compact regions](http://ezyang.com/papers/ezyang15-cnf.pdf) serve two purposes (per [Data.Compact](https://hackage.haskell.org/package/compact-0.2.0.0/docs/Data-Compact.html) documentation):
       - Data stored in a Compact has no garbage collection overhead. The garbage collector considers the whole Compact to be alive if there is a reference to any object within it.
