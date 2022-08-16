@@ -82,7 +82,7 @@ The following keys are **required**:
 - ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
 
 The following keys are **optional**:
-- ```TSS_Window_Size``` -> The TSS window size to search across.
+- ```TSS_Window_Size``` -> The TSS window size to search across. (String)
 
 ## Variant Type
 The ```Variant``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) represents the required information surrounding a variant-of-interest to be examined by **FRI**.
