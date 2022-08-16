@@ -135,7 +135,7 @@ If you are **NOT** a M1 mac, please run the project using the following:
 ```
 
 ## Output
-**By default**, **FRI** outputs a single CSV file, containing all of the information needs to answer the questions posed at the top of this README:
+**By default**, **FRI** outputs a single CSV file, containing all of the information needed to answer the questions posed at the top of this README:
 - ```Variant```
 - ```Region```
 - ```Variant_Within_Region```
