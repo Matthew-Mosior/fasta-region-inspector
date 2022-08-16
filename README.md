@@ -134,6 +134,15 @@ If you are **NOT** a M1 mac, please run the project using the following:
 % stack exec fasta-region-inspector-exe /path/to/configuration.yaml
 ```
 
+## Output
+**By default**, **FRI** outputs a single file, containing all of the information needs to answer the questions posed at the top of this README:
+- ```Variant```
+- ```Region```
+- ```Variant_Within_Region```
+- ```Ambiguity_Code```
+- ```Mapped_Nucleotide_String```
+- ```Ambiguity_Code_String_Locations_Within_TSS```
+
 
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
