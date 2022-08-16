@@ -58,7 +58,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
   - The rest of the command-line arguments are replaced with appropriate compact nested mappings (see [Example 2.12 Compact Nested Mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview))
   - This also supports a more legible, reproducible methodology since you have an easy to read and run file format.
 - Switching from the [Copying Collector GC](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/rts/storage/gc/copying) to the new [Non-Moving GC](https://www.cs.unh.edu/~dietz/papers/gamari2020alligatordemo.pdf)
-  - [GHC](https://www.haskell.org/ghc/), the the de-facto compiler for the Haskell programming language.
+  - [GHC](https://www.haskell.org/ghc/) is the the de-facto compiler for the Haskell programming language.
   - GHC initially had only one implementation of GC, namely the Copy Collector GC.
     - This form of GC has a stop-the-world approach, which causes the program to pause as the memory usage raises to a level where de-allocation is necessary.
   - GHC now has a new implemenation of the GC, the Non-Moving GC, which this program utilizes.
