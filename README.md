@@ -11,7 +11,7 @@ This bioinformatics tool gives researchers the ability to answer the following q
 - Where do user-defined mapped ambiguity strings lie within 2 kb of the TSS?
 - Amalgamating the previous 2 questions, which variant(s) are found within a mapped ambiguity string, that also lie within 2 kb of the TSS?
 
-This tool aims to answer common SHM variant-level questions in software package that provides:
+This tool aims to answer common SHM variant-level questions in a software package that provides:
 - Excellent runtime performance in a robust, functional implementation.
 - Minimized memory usage.
 - A simple, YAML input file format.
@@ -95,7 +95,10 @@ The following keys are **required**:
 - ```Alternate_Allele``` -> The alternate allele for the respective variant (String).
 - ```ENST``` -> The ENST for the respective variant (String).
 
-Note:  The above data can typically be easily grepped/programmed for from the output of a bioinformatics pipeline run, such as the [alignment_exome.cwl](https://github.com/genome/analysis-workflows/blob/master/definitions/pipelines/alignment_exome.cwl).
+### Note
+The above data can typically be easily grepped/programmed for from the output of a bioinformatics pipeline run, such as the [alignment_exome.cwl](https://github.com/genome/analysis-workflows/blob/master/definitions/pipelines/alignment_exome.cwl).
+
+You can also start from a VEP-annotated variant file (https://useast.ensembl.org/info/docs/tools/vep/index.html), which can typically be created once you have run an aligner/variant caller (see above).
 
 ## Building the project
 This software was developed on a M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on any compatible platform.
