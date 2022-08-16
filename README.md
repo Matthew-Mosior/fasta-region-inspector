@@ -86,6 +86,7 @@ The following keys are **required**:
 - ```Output_Directory``` -> The filepath to the output directory (must already exist). (String)
 - ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the wget system call. (Boolean)
 - ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
+- ```Write_Ambiguity_Codes``` -> Whether or not to write CSV file containing all locations of user-defined mapped ambiguity code strings in TSS window. (Boolean)
 
 The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across. (String)
@@ -135,13 +136,17 @@ If you are **NOT** a M1 mac, please run the project using the following:
 ```
 
 ## Output
-**By default**, **FRI** outputs a single CSV file, containing all of the information needed to answer the questions posed at the top of this README:
+**By default**, **FRI** outputs a single CSV file, containing all of the information needed to answer the questions posed at the top of this README.
+
+Each user-defined variant will be included in this CSV file, with the following fields:
 - ```Variant```
 - ```Region```
 - ```Variant_Within_Region```
 - ```Ambiguity_Code```
 - ```Mapped_Nucleotide_String```
 - ```Ambiguity_Code_String_Locations_Within_TSS```
+
+Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
 
 ## Example Stdout (logging)
