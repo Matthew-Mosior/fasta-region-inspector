@@ -154,12 +154,14 @@ If you are **NOT** an M1 mac, please run the project using the following:
 **By default**, **FRI** outputs a single CSV file,namely *variants_in_ambiguity_codes.csv*, containing all of the information needed to answer the questions posed at the top of this README.
 
 Each user-defined variant will be included in this CSV file, with the following fields:
-- ```Variant```
-- ```Region```
-- ```Variant_Within_Region```
-- ```Ambiguity_Code```
-- ```Mapped_Nucleotide_String```
-- ```Ambiguity_Code_String_Locations_Within_TSS```
+- ```Variant``` -> A description of the user-defined variant.
+- ```Region``` -> A description of the region related metadata pulled from BioMart for the user-defined variant.
+- ```Variant_Within_Region``` -> A boolean (Y/N) of whether or not the user-defined variant lies within 2 kb of the TSS.
+- ```Ambiguity_Code``` -> The user-defined ambiguity code used for the stringsearch.
+  - This can be the reverse complement of the user-defined ambiguity code, depending on the strand directionality from the BioMart metadata for the variant.
+- ```Mapped_Nucleotide_String``` -> The [Satisfiability Modulo Theories](https://hackage.haskell.org/package/sbv) calculated mapped ambuguity code string for the given ambiguity code.
+- ```Ambiguity_Code_String_Locations_Within_TSS``` -> The starting position of the first base pair for the mapped nucleotide string.
+  - Again, the strand directionality can change which way the mapped nucleotide string is interpreted (see below).
 
 Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
@@ -171,6 +173,9 @@ Let's use an example to illustrate this:
 |Variant|Region|Variant_Within_Region|Ambiguity_Code|Mapped_Nucleotide_String|Ambiguity_Code_String_Locations_Within_TSS|
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
 |SMP1:H1-5:chr6:27867219:27867219:G:A:ENST00000331442|6:27867588:&#x200B;-1:H1-5|Y|GYW|GCT|27867220|
+
+```Variant```:
+This first field is just a description of the current user-defined variant of interest 
 
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
