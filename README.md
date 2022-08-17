@@ -194,7 +194,7 @@ Let's take a look at what this particular variant looks like in IGV:
   The mapped nucleotide string on the reverse strand.
 </p>
  
-In IGV, you are able to view a nucleotide sequence in both the forward strand orientation (**1**) and the reverse strand orientation (**-1**).
+In IGV, you are able to view a nucleotide sequence in both the forward strand orientation (**1**) and the reverse strand orientation (**-1**) (to do this, click on the arrow icon on the bottom left portion of IGV near **Sequence**).
 
 You can see in the example above that the variant is found on the **reverse** strand.
 
