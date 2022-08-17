@@ -151,7 +151,7 @@ If you are **NOT** an M1 mac, please run the project using the following:
 ```
 
 ## Output
-**By default**, **FRI** outputs a single CSV file, containing all of the information needed to answer the questions posed at the top of this README.
+**By default**, **FRI** outputs a single CSV file,namely *variants_in_ambiguity_codes.csv*, containing all of the information needed to answer the questions posed at the top of this README.
 
 Each user-defined variant will be included in this CSV file, with the following fields:
 - ```Variant```
@@ -164,7 +164,13 @@ Each user-defined variant will be included in this CSV file, with the following 
 Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
 ## Interpreting the Output
+Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.
 
+Let's use an example to illustrate this:
+
+|Variant|Region|Variant_Within_Region|Ambiguity_Code|Mapped_Nucleotide_String|Ambiguity_Code_String_Locations_Within_TSS|
+|-------|------|---------------------|--------------|------------------------|------------------------------------------|
+|SMP1:H1-5:chr6:27867219:27867219:G:A:ENST00000331442|6:27867588:&#x200B;-1:H1-5|Y|GYW|GCT|27867220|
 
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
