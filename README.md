@@ -110,9 +110,9 @@ The above data can typically be easily grepped/programmed for from the output of
 You can also start from a [VEP](https://useast.ensembl.org/info/docs/tools/vep/index.html)-annotated variant file, which can typically be created once you have run an aligner/variant caller (see above).  Starting from a VEP-annotated file will allow you to filter the variants on gene so that you can better target your analysis with this tool.
 
 ## Building the project
-This software was developed on a M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on *most* platforms (any platform that supports GHC 9.2.4).
+This software was developed on an M1 mac.  It has not been tested on other operating systems or chipsets, but should run perfectly fine on *most* platforms (any platform that supports GHC 9.2.4).
 
-If you are on a M1 mac, please build the project using the following:
+If you are on an M1 mac, please build the project using the following:
 ```
 % stack build --arch aarch64
 ```
@@ -125,12 +125,12 @@ If you are **NOT** on a M1 mac, please build the project using the following:
 ## Example Usage
 **FRI** is easy to use, as it only requires a single command-line positional argument, the configuration YAML.
 
-If you are on a M1 mac, please run the project using the following:
+If you are on an M1 mac, please run the project using the following:
 ```
 % stack exec --arch aarch64 fasta-region-inspector-exe /path/to/configuration.yaml
 ```
 
-If you are **NOT** a M1 mac, please run the project using the following:
+If you are **NOT** an M1 mac, please run the project using the following:
 ```
 % stack exec fasta-region-inspector-exe /path/to/configuration.yaml
 ```
