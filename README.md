@@ -166,16 +166,16 @@ Each user-defined variant will be included in this CSV file, with the following 
 Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
 ## Interpreting the Output
-Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.
+Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.  [IGV](https://software.broadinstitute.org/software/igv/) is a helpful resource for visualizing your results. 
 
-Let's use an example to illustrate this:
+Let's use an example to illustrate this (all screenshots are from IGV):
 
 |Variant|Region|Variant_Within_Region|Ambiguity_Code|Mapped_Nucleotide_String|Ambiguity_Code_String_Locations_Within_TSS|
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
 |SMP1:H1-5:chr6:27867219:27867219:G:A:ENST00000331442|6:27867588:&#x200B;-1:H1-5|Y|GYW|GCT|27867220|
 
-```Variant```:
-This first field is just a description of the current user-defined variant of interest 
+### Examine the Mapped Nucleotide String
+Let's take a look at what this particular variant looks like in IGV:
 
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
