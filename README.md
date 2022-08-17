@@ -163,6 +163,8 @@ Each user-defined variant will be included in this CSV file, with the following 
 
 Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
+### Interpreting the output
+
 
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
