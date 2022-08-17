@@ -92,7 +92,7 @@ The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across. (String)
 
 ## Variant Type
-The ```Variant``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) represents the required information surrounding a variant-of-interest to be examined by **FRI**.
+The ```Variants``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) key represents the required information surrounding a variant-of-interest to be examined by **FRI**.
 
 The following keys are **required**:
 - ```Sample``` -> The associated sample identifier for the respective variant (String).
