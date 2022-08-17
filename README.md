@@ -198,7 +198,7 @@ In IGV, you are able to view a nucleotide sequence in both the forward strand or
 
 You can see in the example above that the variant is found on the **reverse** strand.
 
-Because of this, you should focus you look on the reverse strand within IGV (see the reverse strand image above).
+Because of this, you should focus on the reverse strand within IGV (see the reverse strand image above).
 
 To help orient yourself, the **T** is at position **27867218** and the **G** is at position **27867220** on chromosome 6. 
 
