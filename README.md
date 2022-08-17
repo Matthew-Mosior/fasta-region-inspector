@@ -117,7 +117,7 @@ If you are on an M1 mac, please build the project using the following:
 % stack build --arch aarch64
 ```
 
-If you are **NOT** on a M1 mac, please build the project using the following:
+If you are **NOT** on an M1 mac, please build the project using the following:
 ```
 % stack build
 ```
