@@ -165,8 +165,10 @@ Each user-defined variant will be included in this CSV file, with the following 
 
 Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
-## Interpreting the Output
-Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.  [IGV](https://software.broadinstitute.org/software/igv/) is a helpful resource for visualizing your results. 
+## Visualizing the Output
+Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.
+
+[IGV](https://software.broadinstitute.org/software/igv/) is a helpful resource for visualizing your results. 
 
 Let's use an example to illustrate this (all screenshots are from IGV):
 
@@ -174,8 +176,31 @@ Let's use an example to illustrate this (all screenshots are from IGV):
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
 |SMP1:H1-5:chr6:27867219:27867219:G:A:ENST00000331442|6:27867588:&#x200B;-1:H1-5|Y|GYW|GCT|27867220|
 
-### Examine the Mapped Nucleotide String
+### Examine the Mapped Nucleotide String<sup>**Assumes a basic knowledge of IGV**</sup>
 Let's take a look at what this particular variant looks like in IGV:
+<br></br>
+<p align="center">
+  <img src="/img/forwardstrand.png">
+</p>
+<p align="center">
+  The mapped nucleotide string on the forward strand.
+</p>
+<p align="center">
+  <img src="/img/reversestrand.png" />
+</p>
+<p align="center">
+  The mapped nucleotide string on the reverse strand.
+ </p>
+ 
+In IGV, you are able to view a nucleotide sequence in both the forward strand orientation (**1**) and the reverse strand orientation (**-1**).
+
+You can see in the example above that the variant is found on the **reverse** strand.
+
+Because of this, you should focus you look on the reverse strand within IGV (see the reverse strand image above).
+
+To help orient yourself, the **G** is at position **27867220** and the **T** is at position **27867218** on chromosome 6. 
+
+Our variant-of-interest is the **C**, at position **27867219**, due to it being on the reverse strand (the complement to **G** is **C**, and the input to the tool's ```Reference_Allele``` and ```Alternate_Allele``` are to the forward strand.
 
 ## Example Stdout (logging)
 The following is a real stdout (log) of a **FRI** run:
