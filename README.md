@@ -81,6 +81,8 @@ Don't use the old version!
 
 The following keys are **required**:
 - ```Fasta``` -> The filepath to the FASTA file. (String)
+  - Please prefix each chromosome in the FASTA file with **chr**.
+    - Ex. Chromosome 1 should look like -> chr1
 - ```Variants``` -> A [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) (see [below](https://github.com/Matthew-Mosior/Fasta-Region-Inspector/blob/main/README.md#variant-type) for more information).
 - ```Ambiguity_Codes``` -> An array of ambiguity codes to search against. (String)
 - ```Output_Directory``` -> The filepath to the output directory (must already exist). (String)
