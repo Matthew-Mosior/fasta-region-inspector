@@ -176,7 +176,7 @@ Let's use an example to illustrate this (all screenshots are from IGV):
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
 |SMP1:H1-5:chr6:27867219:27867219:G:A:ENST00000331442|6:27867588:&#x200B;-1:H1-5|Y|GYW|GCT|27867220|
 
-### Examine the Mapped Nucleotide String<sup>**Assumes a basic knowledge of IGV**</sup>
+### Examine the Mapped Nucleotide String<sup>**Assumes a working knowledge of IGV**</sup>
 Let's take a look at what this particular variant looks like in IGV:
 <br></br>
 <p align="center">
