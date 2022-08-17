@@ -198,9 +198,9 @@ You can see in the example above that the variant is found on the **reverse** st
 
 Because of this, you should focus you look on the reverse strand within IGV (see the reverse strand image above).
 
-To help orient yourself, the **T** is at position **27867218** and the **G** is at position **27867220**on chromosome 6. 
+To help orient yourself, the **T** is at position **27867218** and the **G** is at position **27867220** on chromosome 6. 
 
-Our variant-of-interest is the **C**, at position **27867219**, due to it being on the reverse strand (the complement to **G** is **C**, and the input to the tool's ```Reference_Allele``` and ```Alternate_Allele``` are in reference to the forward strand.
+Our variant-of-interest is the **C**, at position **27867219**, due to it being on the reverse strand (the complement to **G** is **C**, and the input to the tool's ```Reference_Allele``` and ```Alternate_Allele``` are in reference to the forward strand).
 
 Now that you have a better understanding of what the output means, you can be confident in filtering the output file in a way that is congruent with the research question you are trying to answer.
 
