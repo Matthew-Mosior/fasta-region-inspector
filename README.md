@@ -414,3 +414,6 @@ Saving to: ‘/Users/matthewmosior/Software/local/haskell/Fasta-Region-Inspector
 [2022-08-15 17:06:00.527921 EDT] Printing output CSV files ...
 [2022-08-15 17:06:00.575115 EDT] Shutting down Fasta Region Inspector v0.1.0.0 ...
 ```
+
+## Dependency Visualization via Stack Dot
+The following is a visualization of the dependency graph for **FRI***:
