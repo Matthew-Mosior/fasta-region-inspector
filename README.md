@@ -114,7 +114,7 @@ You can also start from a [VEP](https://useast.ensembl.org/info/docs/tools/vep/i
 ## Building the project
 This software was developed on an M1 mac.
 
-It has not been tested on other operating systems or chipsets, but should run perfectly fine on [Stack](https://docs.haskellstack.org/en/stable/README/)-supported Operating Systems, including:
+It has not been tested on other operating systems or chipsets, but should run perfectly fine on [Stack](https://docs.haskellstack.org/en/stable/README/)-supported operating systems, including:
 - Windows
 - MacOS
 - Ubuntu
