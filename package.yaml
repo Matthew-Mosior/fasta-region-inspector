@@ -25,12 +25,17 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring-to-vector
 - containers
+- connection
 - compact
 - data-default 
 - diagrams-lib 
 - directory 
 - deepseq 
 - ghc-prof
+- http-client
+- http-client-tls
+- http-types
+- tls
 - MissingH
 - parallel
 - parsec
@@ -40,6 +45,7 @@ dependencies:
 - regex-tdfa
 - elynx-seq
 - bytestring
+- req
 - sbv
 - split
 - stringsearch 
@@ -47,6 +53,7 @@ dependencies:
 - pipes-bytestring
 - process
 - raw-strings-qq
+- retry
 - temporary
 - text 
 - time

@@ -81,6 +81,7 @@ library
     , bytestring
     , bytestring-to-vector
     , compact
+    , connection
     , containers
     , data-default
     , deepseq
@@ -88,6 +89,9 @@ library
     , directory
     , elynx-seq
     , ghc-prof
+    , http-client
+    , http-client-tls
+    , http-types
     , massiv
     , parallel
     , parsec
@@ -98,12 +102,15 @@ library
     , regex-compat
     , regex-pcre
     , regex-tdfa
+    , req
+    , retry
     , sbv
     , split
     , stringsearch
     , temporary
     , text
     , time
+    , tls
     , transformers
     , unordered-containers
     , utf8-string
@@ -167,6 +174,7 @@ executable fasta-region-inspector-exe
     , bytestring
     , bytestring-to-vector
     , compact
+    , connection
     , containers
     , data-default
     , deepseq
@@ -174,6 +182,9 @@ executable fasta-region-inspector-exe
     , directory
     , elynx-seq
     , ghc-prof
+    , http-client
+    , http-client-tls
+    , http-types
     , massiv
     , parallel
     , parsec
@@ -184,12 +195,15 @@ executable fasta-region-inspector-exe
     , regex-compat
     , regex-pcre
     , regex-tdfa
+    , req
+    , retry
     , sbv
     , split
     , stringsearch
     , temporary
     , text
     , time
+    , tls
     , transformers
     , unordered-containers
     , utf8-string
@@ -254,6 +268,7 @@ test-suite fasta-region-inspector-test
     , bytestring
     , bytestring-to-vector
     , compact
+    , connection
     , containers
     , data-default
     , deepseq
@@ -261,6 +276,9 @@ test-suite fasta-region-inspector-test
     , directory
     , elynx-seq
     , ghc-prof
+    , http-client
+    , http-client-tls
+    , http-types
     , massiv
     , parallel
     , parsec
@@ -271,12 +289,15 @@ test-suite fasta-region-inspector-test
     , regex-compat
     , regex-pcre
     , regex-tdfa
+    , req
+    , retry
     , sbv
     , split
     , stringsearch
     , temporary
     , text
     , time
+    , tls
     , transformers
     , unordered-containers
     , utf8-string
