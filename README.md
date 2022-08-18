@@ -106,7 +106,7 @@ The following keys are **required**:
 - ```Alternate_Allele``` -> The alternate allele for the respective variant (String).
 - ```ENST``` -> The ENST for the respective variant (String).
 
-### Note
+### Notes
 The above data can typically be easily grepped/programmed for from the output of a bioinformatics pipeline run, such as the [alignment_exome.cwl](https://github.com/genome/analysis-workflows/blob/master/definitions/pipelines/alignment_exome.cwl).
 
 You can also start from a [VEP](https://useast.ensembl.org/info/docs/tools/vep/index.html)-annotated variant file, which can typically be created once you have run an aligner/variant caller (see above).  Starting from a VEP-annotated file will allow you to filter the variants on gene so that you can better target your analysis with this tool.
