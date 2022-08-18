@@ -416,4 +416,5 @@ Saving to: ‘/Users/matthewmosior/Software/local/haskell/Fasta-Region-Inspector
 ```
 
 ## Dependency Visualization via Stack Dot
-The following is a visualization of the dependency graph for **FRI***:
+The following is a visualization of the dependency graph for **FRI**:
+![](dependencies.png)
