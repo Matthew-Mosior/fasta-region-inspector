@@ -165,6 +165,10 @@ Each user-defined variant will be included in this CSV file, with the following 
 - ```Ambiguity_Code_String_Locations_Within_TSS``` -> The starting position of the first base pair for the mapped nucleotide string.
   - Again, the strand directionality can change which way the mapped nucleotide string is interpreted (see below).
 
+### Notes
+
+```N/A``` values in the ```Ambiguity_Code```, ```Mapped_Nucleotide_String```, or ```Ambiguity_Code_String_Locations_Within_TSS``` fields indicate that the respective variant did not lie within a mapped nucleotide string within 2 kb of the TSS.
+
 Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuration YAML, you can also get an additional CSV file containing all locations of user-defined mapped ambiguity code strings in the TSS window.
 
 ## Visualizing the Output
