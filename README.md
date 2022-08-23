@@ -174,9 +174,9 @@ Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuratio
 ## Visualizing the Output
 Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.
 
-[IGV](https://software.broadinstitute.org/software/igv/) is a helpful resource for visualizing your results. 
+Let's use an example to illustrate this (all screenshots are from [IGV](https://software.broadinstitute.org/software/igv/)):
 
-Let's use an example to illustrate this (all screenshots are from IGV):
+IGV is a helpful resource for visualizing your results. 
 
 |Variant|Region|Variant_Within_Region|Ambiguity_Code|Mapped_Nucleotide_String|Ambiguity_Code_String_Locations_Within_TSS|
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
