@@ -152,7 +152,7 @@ If you are **NOT** an M1 mac, please run the project using the following:
 % stack exec fasta-region-inspector-exe /path/to/configuration.yaml
 ```
 
-## Dependencies - Theorem Solvers
+## Dependency - Theorem Solvers
 The program uses the [sbv](https://hackage.haskell.org/package/sbv) package, which interfaces with theorem solver(s).
 
 This package interfaces with one of following supported theorem solvers:
