@@ -175,6 +175,21 @@ You will need to install and set-up one of the above theorem solvers in order fo
 
 Please see http://leventerkok.github.io/sbv/ to get more information on how theorem solvers work.
 
+## Dependency - LLVM
+**FRI** is set up to compile via [LLVM](https://llvm.org/).
+
+This means you need the LLVM compiler to compile this code.
+
+If you are on a mac, you can easily install LLVM via brew:
+
+```brew install llvm```
+
+If you are on windows, you can follow [this](https://llvm.org/docs/GettingStartedVS.html) guide to get started with LLVM.
+
+If you are linux/unix, please download and install via your distribution's package manager.
+
+The `package.yaml` file is where this option is set via `ghc-options` using the `-fllvm` flag.
+
 ## Output
 **By default**, **FRI** outputs a single CSV file,namely *variants_in_ambiguity_codes.csv*, containing all of the information needed to answer the questions posed at the top of this README.
 
