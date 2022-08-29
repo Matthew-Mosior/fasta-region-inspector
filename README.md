@@ -128,6 +128,10 @@ It has not been tested on other operating systems or chipsets, but should run pe
 - NixOS
 - Generic Linux
 
+You will need:
+1) The GHC compiler
+  - I recommend downloading this via [GHCup](https://www.haskell.org/ghcup/).
+2) The Haskell Stack Tool (https://docs.haskellstack.org/en/stable/install_and_upgrade/).
 
 If you are on an M1 mac, please build the project using the following:
 ```
