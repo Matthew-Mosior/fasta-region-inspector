@@ -111,6 +111,40 @@ The above data can typically be easily grepped/programmed for from the output of
 
 You can also start from a [VEP](https://useast.ensembl.org/info/docs/tools/vep/index.html)-annotated variant file, which can typically be created once you have run an aligner/variant caller (see above).  Starting from a VEP-annotated file will allow you to filter the variants on gene so that you can better target your analysis with this tool.
 
+## Dependency - Theorem Solvers
+The program uses the [sbv](https://hackage.haskell.org/package/sbv) package, which interfaces with theorem solver(s).
+
+This package interfaces with one of following supported theorem solvers:
+- [ABC](http://www.eecs.berkeley.edu/~alanmi/abc/) from University of Berkeley.
+- [Boolector](http://fmv.jku.at/boolector/) from Johannes Kepler University.
+- [Bitwuzla](http://bitwuzla.github.io/) from Stanford University.
+- [CVC4](http://cvc4.github.io/) and [CVC5](http://cvc5.github.io/) from Stanford University and the University of Iowa.
+- [DReal](http://dreal.github.com/) from CMU.
+- [MathSAT](http://mathsat.fbk.eu/) from FBK and DISI-University of Trento.
+- [Yices](http://yices.csl.sri.com/) from SRI.
+- [Z3](http://github.com/Z3Prover/z3/wiki) from Microsoft.
+
+This software has been tested with both Z3 and Yices, although the other theorem solvers listed above should work just as well.
+
+You will need to install and set-up one of the above theorem solvers in order for **FRI** to calculate the mapped ambiguity code string for the given ambiguity code(s).
+
+Please see http://leventerkok.github.io/sbv/ to get more information on how theorem solvers work.
+
+## Dependency - LLVM
+**FRI** is set up to compile via [LLVM](https://llvm.org/).
+
+This means you need the LLVM compiler to compile this code.
+
+If you are on a mac, you can easily install LLVM via brew:
+
+```brew install llvm```
+
+If you are on windows, you can follow [this](https://llvm.org/docs/GettingStartedVS.html) guide to get started with LLVM.
+
+If you are linux/unix, please download and install via your distribution's package manager.
+
+The `package.yaml` file is where this option is set via `ghc-options` using the `-fllvm` flag.
+
 ## Building the project
 This software was developed on an M1 mac.
 
@@ -155,40 +189,6 @@ If you are **NOT** an M1 mac, please run the project using the following:
 ```
 % stack exec fasta-region-inspector-exe /path/to/configuration.yaml
 ```
-
-## Dependency - Theorem Solvers
-The program uses the [sbv](https://hackage.haskell.org/package/sbv) package, which interfaces with theorem solver(s).
-
-This package interfaces with one of following supported theorem solvers:
-- [ABC](http://www.eecs.berkeley.edu/~alanmi/abc/) from University of Berkeley.
-- [Boolector](http://fmv.jku.at/boolector/) from Johannes Kepler University.
-- [Bitwuzla](http://bitwuzla.github.io/) from Stanford University.
-- [CVC4](http://cvc4.github.io/) and [CVC5](http://cvc5.github.io/) from Stanford University and the University of Iowa.
-- [DReal](http://dreal.github.com/) from CMU.
-- [MathSAT](http://mathsat.fbk.eu/) from FBK and DISI-University of Trento.
-- [Yices](http://yices.csl.sri.com/) from SRI.
-- [Z3](http://github.com/Z3Prover/z3/wiki) from Microsoft.
-
-This software has been tested with both Z3 and Yices, although the other theorem solvers listed above should work just as well.
-
-You will need to install and set-up one of the above theorem solvers in order for **FRI** to calculate the mapped ambiguity code string for the given ambiguity code(s).
-
-Please see http://leventerkok.github.io/sbv/ to get more information on how theorem solvers work.
-
-## Dependency - LLVM
-**FRI** is set up to compile via [LLVM](https://llvm.org/).
-
-This means you need the LLVM compiler to compile this code.
-
-If you are on a mac, you can easily install LLVM via brew:
-
-```brew install llvm```
-
-If you are on windows, you can follow [this](https://llvm.org/docs/GettingStartedVS.html) guide to get started with LLVM.
-
-If you are linux/unix, please download and install via your distribution's package manager.
-
-The `package.yaml` file is where this option is set via `ghc-options` using the `-fllvm` flag.
 
 ## Output
 **By default**, **FRI** outputs a single CSV file,namely *variants_in_ambiguity_codes.csv*, containing all of the information needed to answer the questions posed at the top of this README.
