@@ -131,7 +131,7 @@ You will need to install and set-up one of the above theorem solvers in order fo
 Please see http://leventerkok.github.io/sbv/ to get more information on how theorem solvers work.
 
 ## Dependency - LLVM
-**FRI** is set up to compile via [LLVM](https://llvm.org/).
+**FRI** is set up to compile via [LLVM](https://llvm.org/) instead of using the native code generator. This will generally take slightly longer than the native code generator to compile. Produced code is generally the same speed or faster than the other two code generators. Compiling via LLVM requires LLVM’s opt and llc executables to be in PATH.
 
 This means you need the LLVM compiler to compile this code.
 
