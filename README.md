@@ -122,7 +122,7 @@ This package interfaces with one of following supported theorem solvers:
 - [DReal](http://dreal.github.com/) from CMU.
 - [MathSAT](http://mathsat.fbk.eu/) from FBK and DISI-University of Trento.
 - [Yices](http://yices.csl.sri.com/) from SRI.
-- [Z3](http://github.com/Z3Prover/z3/wiki) from Microsoft.
+- [Z3](http://github.com/Z3Prover/z3/) from Microsoft.
 
 This software has been tested with both Z3 and Yices, although the other theorem solvers listed above should work just as well.
 
