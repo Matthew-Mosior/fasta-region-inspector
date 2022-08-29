@@ -165,7 +165,7 @@ This package interfaces with one of following supported theorem solvers:
 - [Yices](http://yices.csl.sri.com/) from SRI.
 - [Z3](http://github.com/Z3Prover/z3/wiki) from Microsoft.
 
-This software has been tested with both Z3 and Yices.
+This software has been tested with both Z3 and Yices, although the other theorem solvers listed above should work just as well.
 
 You will need to install and set-up one of the above theorem solvers in order for **FRI** to calculate the mapped ambiguity code string for the given ambiguity code(s).
 
