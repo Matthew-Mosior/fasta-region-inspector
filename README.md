@@ -114,6 +114,11 @@ You can also start from a [VEP](https://useast.ensembl.org/info/docs/tools/vep/i
 ## Building the project
 This software was developed on an M1 mac.
 
+You will need:
+- The GHC compiler
+  - I recommend downloading this via [GHCup](https://www.haskell.org/ghcup/).
+- The Haskell Stack Tool (https://docs.haskellstack.org/en/stable/install_and_upgrade/).
+
 It has not been tested on other operating systems or chipsets, but should run perfectly fine on [Stack](https://docs.haskellstack.org/en/stable/README/)-supported operating systems, including:
 - Windows
 - MacOS
@@ -127,11 +132,6 @@ It has not been tested on other operating systems or chipsets, but should run pe
 - openSUSE
 - NixOS
 - Generic Linux
-
-You will need:
-- The GHC compiler
-  - I recommend downloading this via [GHCup](https://www.haskell.org/ghcup/).
-- The Haskell Stack Tool (https://docs.haskellstack.org/en/stable/install_and_upgrade/).
 
 If you are on an M1 mac, please build the project using the following:
 ```
