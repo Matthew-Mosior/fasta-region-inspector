@@ -112,7 +112,7 @@ The above data can typically be easily grepped/programmed for from the output of
 
 You can also start from a [VEP](https://useast.ensembl.org/info/docs/tools/vep/index.html)-annotated variant file, which can typically be created once you have run an aligner/variant caller (see above).  Starting from a VEP-annotated file will allow you to filter the variants on gene so that you can better target your analysis with this tool.
 
-## Dependency - Theorem Solvers
+## Dependency - Theorem Solver
 The program uses the [sbv](https://hackage.haskell.org/package/sbv) package, which interfaces with theorem solver(s).
 
 This package interfaces with one of following supported theorem solvers:
