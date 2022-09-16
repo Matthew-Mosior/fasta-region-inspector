@@ -229,7 +229,7 @@ IGV is a helpful resource for visualizing your results (all of the following scr
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
 |SMP1:H1-5:chr6:27867219:27867219:G:A:ENST00000331442|6:27867588:&#x200B;-1:H1-5|Y|GYW|GCT|27867220|
 
-Let's take a look at what this particular variant looks like in IGV:
+Let's take a look at what IGV shows for this particular variant:
 <br></br>
 <p align="center">
   <img src="/img/forwardstrand.png">
