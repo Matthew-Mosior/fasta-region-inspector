@@ -215,7 +215,7 @@ Depending on how you set the ```Write_Ambiguity_Codes``` key in the configuratio
 ## Visualizing the Output
 Interpretation of the *variants_in_ambiguity_codes.csv* file is a simple process.
 
-The following example will help with ground your understanding of the output.
+The following example will hopefully help with understanding the output of **fri**.
 
 ### Note
 
