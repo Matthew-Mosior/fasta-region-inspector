@@ -225,7 +225,7 @@ IGV is a helpful resource for visualizing your results (all of the following scr
 
 ### Examine the Mapped Nucleotide String<sup>**Assumes a working knowledge of IGV**</sup>
 
-The following assumes you load the FASTA file used for the **fri** run.
+The following assumes you load the FASTA file used for the **FRI** run.
 
 |Variant|Region|Variant_Within_Region|Ambiguity_Code|Mapped_Nucleotide_String|Ambiguity_Code_String_Locations_Within_TSS|
 |-------|------|---------------------|--------------|------------------------|------------------------------------------|
