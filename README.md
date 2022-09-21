@@ -201,7 +201,7 @@ Each user-defined variant will be included in this CSV file, with the following 
 - ```Region``` -> A description of the region related metadata pulled from BioMart for the user-defined variant.
 - ```Variant_Within_Region``` -> A boolean (Y/N) of whether or not the user-defined variant lies within 2 kb of the TSS.
 - ```Ambiguity_Code``` -> The user-defined ambiguity code used for the stringsearch.
-  - This can be the reverse complement of the user-defined ambiguity code, depending on the strand directionality from the BioMart for the variant.
+  - This can be the reverse complement of the user-defined ambiguity code, depending on the strand directionality pulled from BioMart for the variant.
 - ```Mapped_Nucleotide_String``` -> The [Satisfiability Modulo Theories](https://hackage.haskell.org/package/sbv) calculated mapped ambuguity code string for the given ambiguity code.
 - ```Ambiguity_Code_String_Locations_Within_TSS``` -> The starting position of the first base pair for the mapped nucleotide string.
   - Again, the strand directionality can change which way the mapped nucleotide string is interpreted (see below).
