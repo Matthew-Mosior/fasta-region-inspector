@@ -93,6 +93,7 @@ The following keys are **required**:
 
 The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across. (String)
+  - The default is 2000 bp.
 
 ## Variant Type
 The ```Variants``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) key represents the required information surrounding a variant-of-interest to be examined by **FRI**.
