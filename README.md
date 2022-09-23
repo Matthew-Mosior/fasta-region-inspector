@@ -70,7 +70,7 @@ This version of **FRI** is vastly improved upon from the [old version](https://g
   - You can switch between the two forms of GC using the GHC command-line argument ```-with-rtsopts=-xn```.
     - This can be set in a Haskell stack project (like this repo) within the ```package.yaml``` file via ```ghc-options``` using the ```-with-rtsopts=-xn``` flag.
 - Dramatic runtime performance improvement
-  - After all of the above changes (moving to stack or the new YAML input file doesn't affect runtime performance, but the rest of the points do), there is ~160X speedup in runtime (*benchmarks up-coming*) in the examples run locally so far (comparable tests are showing ~8 hrs down to ~3 minutes).
+  - After all of the above changes (moving to stack or the new YAML input file doesn't affect runtime performance, but the rest of the points do), there is ~160X speedup (*benchmarks up-coming*) in the examples run locally so far (comparable tests are showing ~8 hrs down to ~3 minutes).
   - In general, the more ambiguity codes and variants there are to be analyzed by **FRI**, the larger the runtime disparity between the old and new version.
 
 ### Conclusion
