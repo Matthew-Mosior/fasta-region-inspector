@@ -185,7 +185,7 @@ fastaRegionInspect config = do
                                "variants_in_ambiguity_codes.csv"
              --Shut down FRI.
              logMessage LogInfo
-                        "Shutting down Fasta Region Inspector v0.1.0.0."
+                        "Shutting down Fasta Region Inspector v0.2.0.0."
                         Null
        | otherwise
        -> do liftIO $ writeCSV config
@@ -193,5 +193,5 @@ fastaRegionInspect config = do
                                "variants_in_ambiguity_codes.csv"
              --Shut down FRI.
              logMessage LogInfo
-                        "Shutting down Fasta Region Inspector v0.1.0.0."
+                        "Shutting down Fasta Region Inspector v0.2.0.0."
                         Null

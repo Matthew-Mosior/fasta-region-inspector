@@ -44,6 +44,6 @@ friApp = do --Get command line arguments.
                | otherwise
                -> do --Run args and files through processArgsAndFiles.
                      _ <- logMessage LogInfo
-                                     "Starting up Fasta Region Inspector v0.1.0.0."
+                                     "Starting up Fasta Region Inspector v0.2.0.0."
                                      Null
                      runStructuredConcurrency $ runFastaRegionInspector (args,files)   
