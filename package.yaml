@@ -1,5 +1,5 @@
 name:                Fasta-Region-Inspector
-version:             0.1.0.0
+version:             0.2.0.0
 github:              "Matthew-Mosior/Fasta-Region-Inspector"
 license:             BSD3
 author:              "Matthew C. Mosior"
@@ -21,25 +21,27 @@ description:         Please see the README on GitHub at <https://github.com/Matt
 
 dependencies:
 - aeson 
-- attoparsec
 - base >= 4.7 && < 5
 - bytestring-to-vector
 - containers
 - connection
-- compact
-- data-default 
 - diagrams-lib 
 - directory 
-- deepseq 
+- effectful
+- effectful-core
 - ghc-prof
 - http-client
 - http-client-tls
 - http-types
+- linear-base
+- log-base
+- ki-effectful
+- log-effectful
 - tls
 - MissingH
 - parallel
-- parsec
-- pcre-heavy 
+- pcre-heavy
+- process
 - regex-compat
 - regex-pcre
 - regex-tdfa
@@ -49,105 +51,24 @@ dependencies:
 - sbv
 - split
 - stringsearch 
-- massiv
-- pipes-bytestring
-- process
 - raw-strings-qq
 - retry
 - temporary
 - text 
 - time
-- transformers
 - unordered-containers
 - utf8-string
 - vector 
-- xml-conduit 
-- xlsx 
+- xml-conduit
 - yaml 
 
 library:
   source-dirs: src
-  default-extensions:
-   - MultiWayIf
-   - DataKinds
-   - DefaultSignatures
-   - DeriveFoldable
-   - DeriveFunctor
-   - DeriveGeneric
-   - DeriveTraversable
-   - DerivingStrategies
-   - DuplicateRecordFields
-   - FlexibleContexts
-   - FlexibleInstances
-   - GADTs
-   - GeneralizedNewtypeDeriving
-   - InstanceSigs
-   - LambdaCase
-   - MagicHash
-   - NamedFieldPuns
-   - NoMonomorphismRestriction
-   - NumDecimals
-   - OverloadedStrings
-   - PatternSynonyms
-   - PolyKinds
-   - QuantifiedConstraints
-   - RankNTypes
-   - RecordWildCards
-   - RoleAnnotations
-   - ScopedTypeVariables
-   - StandaloneDeriving
-   - Strict
-   - TupleSections
-   - TypeApplications
-   - TypeFamilyDependencies
-   - TypeOperators
-   - TypeSynonymInstances
-   - ViewPatterns
-   - OverloadedLists
-   - QuasiQuotes
 
 executables:
-   fasta-region-inspector-exe:
+   fasta-region-inspector:
     main:                Main.hs
     source-dirs:         app
-    default-extensions:
-     - MultiWayIf
-     - DataKinds
-     - DefaultSignatures
-     - DeriveFoldable
-     - DeriveFunctor
-     - DeriveGeneric
-     - DeriveTraversable
-     - DerivingStrategies
-     - DuplicateRecordFields
-     - FlexibleContexts
-     - FlexibleInstances
-     - GADTs
-     - GeneralizedNewtypeDeriving
-     - InstanceSigs
-     - LambdaCase
-     - MagicHash
-     - NamedFieldPuns
-     - NoMonomorphismRestriction
-     - NumDecimals
-     - OverloadedStrings
-     - PatternSynonyms
-     - PolyKinds
-     - QuantifiedConstraints
-     - RankNTypes
-     - RecordWildCards
-     - RoleAnnotations
-     - ScopedTypeVariables
-     - StandaloneDeriving
-     - Strict
-     - TupleSections
-     - TypeApplications
-     - TypeFamilyDependencies
-     - TypeOperators
-     - TypeSynonymInstances
-     - ViewPatterns
-     - OverloadedLists
-     - QuasiQuotes
     ghc-options:
      - -threaded
      - -O2
@@ -162,44 +83,6 @@ tests:
   fasta-region-inspector-test:
     main:                Spec.hs
     source-dirs:         test
-    default-extensions:
-     - MultiWayIf
-     - DataKinds
-     - DefaultSignatures
-     - DeriveFoldable
-     - DeriveFunctor
-     - DeriveGeneric
-     - DeriveTraversable
-     - DerivingStrategies
-     - DuplicateRecordFields
-     - FlexibleContexts
-     - FlexibleInstances
-     - GADTs
-     - GeneralizedNewtypeDeriving
-     - InstanceSigs
-     - LambdaCase
-     - MagicHash
-     - NamedFieldPuns
-     - NoMonomorphismRestriction
-     - NumDecimals
-     - OverloadedStrings
-     - PatternSynonyms
-     - PolyKinds
-     - QuantifiedConstraints
-     - RankNTypes
-     - RecordWildCards
-     - RoleAnnotations
-     - ScopedTypeVariables
-     - StandaloneDeriving
-     - Strict
-     - TupleSections
-     - TypeApplications
-     - TypeFamilyDependencies
-     - TypeOperators
-     - TypeSynonymInstances
-     - ViewPatterns
-     - OverloadedLists
-     - QuasiQuotes
     ghc-options:
      - -threaded
      - -O2

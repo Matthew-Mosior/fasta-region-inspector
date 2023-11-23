@@ -1,28 +1,18 @@
-{-=Fasta-Region-Inspector (FRI): A Somatic=-}
-{-=Hypermutation Analysis Tool.=-}
-{-=Author: Matthew Mosior=-}
-{-=Synposis: This Haskell script will=-}
-{-=launch the FRI main runner function.=-}
-
-
-{-Module.-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE Strict            #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module RunFRI where
 
-{---------}
-
-
-{-Import modules.-}
-
 import CmdOpts
-import Common
 import Inspect
+import Types
 import YamlParser
-
-{-----------------}
-
-
-{-Imports.-}
 
 import Data.ByteString.Char8 as DBC
 import Data.Char as DC
@@ -30,39 +20,15 @@ import Data.List as DL
 import Data.Maybe as DMaybe
 import Data.Text as DText
 import Data.Yaml as DYaml
+import Effectful
+import Effectful.Ki
+import Effectful.Log
 import System.Directory as SD
 import System.Environment as SE
 import System.Exit as SX
 import System.IO as SIO
-import Text.RawString.QQ as TRQQ
 import Text.Regex as TR
 import Text.Regex.TDFA as TRTDFA
-
-{----------}
-
-
-{-3D Macro Font.-}
-
-fri3DMacroFont :: String
-fri3DMacroFont =
-  [r|
-        ______           __           ____             _                ____                           __            
-       / ____/___ ______/ /_____ _   / __ \___  ____ _(_)___  ____     /  _/___  _________  ___  _____/ /_____  _____
-      / /_  / __ `/ ___/ __/ __ `/  / /_/ / _ \/ __ `/ / __ \/ __ \    / // __ \/ ___/ __ \/ _ \/ ___/ __/ __ \/ ___/
-     / __/ / /_/ (__  ) /_/ /_/ /  / _, _/  __/ /_/ / / /_/ / / / /  _/ // / / (__  ) /_/ /  __/ /__/ /_/ /_/ / /    
-    /_/    \__,_/____/\__/\__,_/  /_/ |_|\___/\__, /_/\____/_/_/_/__/___/_/ /_/____/ .___/\___/\___/\__/\____/_/     
-                                             /____/_/ __ \ <  // __ \ / __ \      /_/                                
-                                             | | / / / / / / // / / // / / /                                         
-                                             | |/ / /_/ / / // /_/ // /_/ /                                          
-                                             |___/\____(_)_(_)____(_)____/                                           
-                                                                  
-                                           Copyright (c) Matthew C. Mosior 2022          
-  |]
-
-{----------------}
-
-
-{-FRI specific functions.-}
 
 tssWindowSizeCheck :: FRIConfig -> Bool
 tssWindowSizeCheck config = if | DMaybe.isJust (tsswindowsize config)
@@ -106,32 +72,44 @@ ambiguityCodesCheck config = if | DL.all
 
 processConfigurationYaml :: FRIConfig -> IO Bool
 processConfigurationYaml config = do
-  doesinputfastafileexist <- SD.doesFileExist (DText.unpack $ fasta config)
+  doesinputfastafileexist  <- SD.doesFileExist (DText.unpack $ fasta config)
+  doesinputfastaindexexist <- SD.doesFileExist (DText.unpack $ fai config)
   if | doesinputfastafileexist &&
+       doesinputfastaindexexist &&
        tssWindowSizeCheck config &&
        ambiguityCodesCheck config
      -> return True
      | otherwise
      -> return False  
 
-
-runFastaRegionInspector :: ([Flag],[String]) -> IO ()
-runFastaRegionInspector ([],[])        = return ()
+{-
+runFastaRegionInspector :: ( MonadIO m
+                           , MonadLog m
+                           )
+                        => ([Flag],[FilePath])
+                        -> m ()
+-}
+runFastaRegionInspector :: forall {es :: [Effect]} {b}.
+                           ( StructuredConcurrency :> es
+                           , Log :> es
+                           , IOE :> es
+                           )
+                        => ([Flag],[FilePath])
+                        -> Eff es ()
+runFastaRegionInspector ([],[])        = liftIO $ return ()
 runFastaRegionInspector (_,inputfiles) = do
-  --Print out Fasta Region Inspector ascii art.
-  SIO.putStrLn fri3DMacroFont
   --Read in configuration YAML.
-  readinputyaml <- DBC.readFile ((\(x:_) -> x) inputfiles)
+  readinputyaml <- liftIO $ DBC.readFile ((\(x:_) -> x) inputfiles)
   --Decode readinputyaml.
-  decodedinputyaml <- decodeThrow readinputyaml :: IO FRIConfig
+  decodedinputyaml <- decodeThrow readinputyaml -- :: IO FRIConfig
   --Process and ensure correctly formatting Configuration YAML input.
-  processedConfig <- processConfigurationYaml decodedinputyaml
+  processedConfig <- liftIO $ processConfigurationYaml decodedinputyaml
   if | processedConfig
-     -> do --Run fastaRegionInspect decodedinputyaml
-           fastaRegionInspect decodedinputyaml
+        --Process the input yaml.
+     -> fastaRegionInspect decodedinputyaml
      | otherwise
      -> do --Print out failure message.
-           SIO.putStrLn "Could not sanitize Configuration YAML.\n"
-           SX.exitWith (SX.ExitFailure 1) 
-
-{-------------------------}
+           _ <- logMessage LogAttention
+                           "Could not sanitize Configuration YAML."
+                           Null
+           liftIO $ SX.exitWith (SX.ExitFailure 1)

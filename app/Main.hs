@@ -1,58 +1,49 @@
-{-=Fasta-Region-Inspector (FRI): A Somatic=-}
-{-=Hypermutation Analysis Tool.=-}
-{-=Author: Matthew Mosior=-}
-{-=Synposis: This Haskell script will=-}
-{-=launch the FRI application.=-}
-
-{-Language extension.-}
-
-{-# LANGUAGE Strict     #-}
-{-# LANGUAGE StrictData #-}
-{-# LANGUAGE MultiWayIf #-}
-
-{---------------------}
-
-
-{-Module.-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE Strict            #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Main where
 
-{---------}
-
-
-{-Import src.-}
-
+import MacroFont
 import RunFRI
 import CmdOpts
 
-{-------------}
-
-
-{-Imports.-}
-
+import Data.Aeson.Types
 import Data.List as DL
+import Effectful
+import Effectful.Ki
+import Effectful.Log
+import Log.Backend.StandardOutput (withStdOutLogger)
 import System.Directory as SD
 import System.Environment as SE
 import System.Exit as SX
 import System.IO as SIO
 
-{----------}
-
-
-{-Main function.-}
-
 main :: IO ()
-main = do
-  --Get command line arguments.
-  (args,files) <- SE.getArgs >>= compilerOpts
-  --See if files is null.
-  if | (DL.length files) /= 1
-     -> do --Print error statement and exit.
-           SIO.putStrLn "FRI requires one argument:\n\
-                        \Argument 1: Configuration YAML file\n"
-           SX.exitWith (SX.ExitFailure 1)
-     | otherwise
-     -> do --Run args and files through processArgsAndFiles.
-           runFastaRegionInspector (args,files)
+main = do --Print out Fasta Region Inspector ascii art.
+          _ <- SIO.putStrLn fri3DMacroFont
+          withStdOutLogger $ \logger -> do
+            runEff $ runLog "main"
+                            logger
+                            LogTrace
+                            friApp
 
-{----------------}
+friApp :: Eff '[Log,IOE] ()
+friApp = do --Get command line arguments.
+            (args,files) <- liftIO $ SE.getArgs >>= compilerOpts
+            --See if files is null.
+            if | DL.length files /= 1
+               -> do logMessage LogTrace
+                                "FRI requires one argument:\n\
+                                \Argument 1: Configuration YAML file\n"
+                                Null
+                     liftIO $ SX.exitWith (SX.ExitFailure 1) 
+               | otherwise
+               -> do --Run args and files through processArgsAndFiles.
+                     _ <- logMessage LogInfo
+                                     "Starting up Fasta Region Inspector v0.1.0.0."
+                                     Null
+                     runStructuredConcurrency $ runFastaRegionInspector (args,files)   

@@ -1,31 +1,16 @@
-{-=Fasta-Region-Inspector (FRI): A Somatic=-}
-{-=Hypermutation Analysis Tool.=-}
-{-=Author: Matthew Mosior=-}
-{-=Synposis: This Haskell script will=-}
-{-=process command line arguments to FRI.=-}
-
-
-{-Module.-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MultiWayIf         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module QueryBioMart where
 
-{---------}
-
-
-{-Import modules.-}
-
-import Common
-import YamlParser
-
-{-----------------}
-
-
-{-Imports.-}
+import Types
 
 import Control.Monad as CM
 import Control.Monad.IO.Class as CMIOC
 import Control.Exception as CE
 import Control.Retry as CR
+import Data.Aeson.Types
 import Data.ByteString.Char8 as DBC8
 import Data.Function as DF
 import Data.List as DL
@@ -36,6 +21,8 @@ import qualified Data.Text.Lazy as DTL
 import qualified Data.Text.Lazy.IO as DTLIO
 import qualified Data.Map as Map
 import Data.Time as DTime
+import Effectful (liftIO,MonadIO, MonadUnliftIO (withRunInIO))
+import Effectful.Log
 import Network.Connection as NC
 import Network.HTTP.Client as NHTTPC
 import Network.HTTP.Client.TLS as NHTTPTLS
@@ -48,50 +35,66 @@ import System.Environment as SE
 import System.Exit as SX
 import System.IO as SIO
 import System.Process as SP
-import Text.XML
+import Text.XML as TXML
 
-{----------}
-
-
-{-Query BioMart functions.-}
-
-runQueryBioMart :: FRIConfig -> IO [BioMartRegion]
+runQueryBioMart :: ( MonadIO m
+                   , MonadLog m
+                   )
+                => FRIConfig
+                -> m [BioMartRegion]
 runQueryBioMart config = do
   --Generate BioMart compatible xml.
-  currenttandd <- DTime.getZonedTime 
-  _ <- SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                         ++ "Generating BioMart compatible XML ...")
-  
-  let biomartxml = Element "Query" [ ("virtualSchemaName","default")
-                                   , ("formatter","CSV")
-                                   , ("header","0")
-                                   , ("uniqueRows","0")
-                                   , ("count","")
-                                   , ("datasetConfigVersion","0.6")
-                                   ]
-                     [ NodeElement $ Element "Dataset" [ ("name","hsapiens_gene_ensembl")
-                                                       , ("interface","default")
-                                                       ]
-                       [ NodeElement $ Element "Filter" [ ("name","ensembl_transcript_id")
-                                                        , ("value",finalallensts)
-                                                        ] [],
-                         NodeElement $ Element "Attribute" [ ("name","chromosome_name")
-                                                           ] [] ,
-                         NodeElement $ Element "Attribute" [ ("name","transcription_start_site")
-                                                           ] [] ,
-                         NodeElement $ Element "Attribute" [ ("name","strand")
-                                                           ] [] ,
-                         NodeElement $ Element "Attribute" [ ("name","external_gene_name")
-                                                           ] []
-                       ]
-                     ]
-  let finalbiomartxml = Document (Prologue []
-                                           (Just Doctype { doctypeName = "Query" , doctypeID = Nothing })
-                                           [])
-                                 biomartxml
-                                 []
+  _ <- logMessage LogInfo
+                  "Generating BioMart compatible XML."
+                  Null
+  let biomartxml = TXML.Element "Query" (Map.fromList [ ("virtualSchemaName","default")
+                                                      , ("formatter","CSV")
+                                                      , ("header","0")
+                                                      , ("uniqueRows","0")
+                                                      , ("count","")
+                                                      , ("datasetConfigVersion","0.6")
+                                                      ]
+                                        )
+                                        [ TXML.NodeElement $ TXML.Element "Dataset"
+                                                                          (Map.fromList [ ("name","hsapiens_gene_ensembl")
+                                                                                        , ("interface","default")
+                                                                                        ]
+                                                                          )
+                                                                          [ TXML.NodeElement $ TXML.Element "Filter"
+                                                                                                            (Map.fromList [ ("name","ensembl_transcript_id")
+                                                                                                                          , ("value",finalallensts)
+                                                                                                                          ]
+                                                                                                            )
+                                                                                                            [],
+                                                                            TXML.NodeElement $ TXML.Element "Attribute"
+                                                                                                            (Map.fromList [ ("name","chromosome_name")
+                                                                                                                          ]
+                                                                                                            )
+                                                                                                            [] ,
+                                                                            TXML.NodeElement $ TXML.Element "Attribute"
+                                                                                                            (Map.fromList [ ("name","transcription_start_site")
+                                                                                                                          ]
+                                                                                                            )
+                                                                                                            [] ,
+                                                                            TXML.NodeElement $ TXML.Element "Attribute"
+                                                                                                            (Map.fromList [ ("name","strand")
+                                                                                                                          ]
+                                                                                                            )
+                                                                                                            [] ,
+                                                                            TXML.NodeElement $ TXML.Element "Attribute"
+                                                                                                            (Map.fromList [ ("name","external_gene_name")
+                                                                                                                          ]
+                                                                                                            )
+                                                                                                            []
+                                                                          ]
+                                                     ]
+  let finalbiomartxml = TXML.Document (Prologue []
+                                                (Just Doctype { doctypeName = "Query" , doctypeID = Nothing })
+                                                [])
+                                      biomartxml
+                                      []
   --Create new http manager.
-  mymanager <- NHTTPC.newManager $ mkManagerSettings (TLSSettingsSimple True False False) Nothing
+  mymanager <- liftIO $ NHTTPC.newManager $ mkManagerSettings (TLSSettingsSimple True False False) Nothing
   --Define httpconfig using mymanager.
   let httpconfig = HttpConfig { httpConfigProxy = Nothing
                               , httpConfigRedirectCount = 10
@@ -101,7 +104,8 @@ runQueryBioMart config = do
                                     in if | 200 <= scode && scode < 300
                                           -> Nothing
                                           | otherwise
-                                          -> Just (StatusCodeException (void response) preview)
+                                          -> Just $ StatusCodeException (void response)
+                                                                        preview
                               , httpConfigRetryPolicy = retryPolicyDefault
                               , httpConfigRetryJudge  = \_ response ->
                                   statusCodeR response
@@ -123,57 +127,57 @@ runQueryBioMart config = do
                               }
                                 where
                                   statusCodeR = NHTTPT.statusCode DF.. responseStatus
-  runReq httpconfig $ do
-    currenttandd <- liftIO DTime.getZonedTime
-    _ <- liftIO $ SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                    ++ "Querying and downloading region data from BioMart via HTTP request ...")
-    let params = "query" =: ((DTextL.toStrict $ renderText def finalbiomartxml) :: DText.Text)
-    biomartrequest <- req NHR.POST (http "www.ensembl.org" /: "biomart" /: "martservice")
+  _ <- logMessage LogInfo
+                  "Querying and downloading region data from BioMart via HTTP request."
+                  Null
+  biomartrequest <- runReq httpconfig $ do
+                      let params = "query" =: ((DTextL.toStrict $ renderText def finalbiomartxml) :: DText.Text)
+                      req NHR.POST (http "www.ensembl.org" /: "biomart" /: "martservice")
                                    (ReqBodyUrlEnc params)
                                    bsResponse
                                    mempty
-    currenttandd <- liftIO DTime.getZonedTime
-    _ <- liftIO $ SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                    ++ "Successfully queried and returned region data from BioMart via HTTP request ...")
-    let returnedbiomartregions = DBC8.unpack $
-                                 NHR.responseBody biomartrequest 
-    let finalbiomartregions = DL.map (\x -> DLS.splitOn "," x)
-                              (DL.lines returnedbiomartregions)
-    let processedregiondata = DL.map (\x -> BioMartRegion { rchromosome = DText.pack
-                                                                          (DL.concat
-                                                                          (DL.take 1 x))
-                                                          , rtss        = DText.pack
-                                                                          (DL.concat
-                                                                          (DL.drop 1
-                                                                          (DL.take 2 x)))
-                                                          , rstrand     = DText.pack
-                                                                          (DL.concat
-                                                                          (DL.drop 2
-                                                                          (DL.take 3 x)))
-                                                          , rgenename   = DText.pack
-                                                                          (DL.concat
-                                                                          (DL.drop 3
-                                                                          (DL.take 4 x)))
-                                                          }
-                                     )
-                              finalbiomartregions
-    if | keepbiomart config
-       -> if | DL.last outputdir == '/'
-             -> do currenttandd <- liftIO DTime.getZonedTime
-                   _ <- liftIO $ SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                                   ++ "Writing BioMart region data to file biomartresult.txt in output directory ...")
-                   _ <- liftIO $ SIO.writeFile (outputdir ++ "biomartresult.txt")
-                                               returnedbiomartregions
-                   return processedregiondata
-             | otherwise
-             -> do currenttandd <- liftIO DTime.getZonedTime
-                   _ <- liftIO $ SIO.putStrLn ("[" ++ (showPrettyZonedTime currenttandd) ++ "] "
-                                                   ++ "Writing BioMart region data to file biomartresult.txt in output directory ...")
-                   _ <- liftIO $ SIO.writeFile (outputdir ++ "/" ++ "biomartresult.txt")
-                                               returnedbiomartregions
-                   return processedregiondata 
-       | otherwise
-       -> return processedregiondata
+  _ <- logMessage LogInfo
+                  "Successfully queried and returned region data from BioMart via HTTP request."
+                  Null
+  let returnedbiomartregions = DBC8.unpack $
+                               NHR.responseBody biomartrequest 
+  let finalbiomartregions = DL.map (\x -> DLS.splitOn "," x)
+                            (DL.lines returnedbiomartregions)
+  let processedregiondata = DL.map (\x -> BioMartRegion { biomartregion_sequencedescription = DText.pack
+                                                                                              (DL.concat
+                                                                                              (DL.take 1 x))
+                                                        , biomartregion_tss                 = DText.pack
+                                                                                              (DL.concat
+                                                                                              (DL.drop 1
+                                                                                              (DL.take 2 x)))
+                                                        , biomartregion_strand              = DText.pack
+                                                                                              (DL.concat
+                                                                                              (DL.drop 2
+                                                                                              (DL.take 3 x)))
+                                                        , biomartregion_genename            = DText.pack
+                                                                                              (DL.concat
+                                                                                              (DL.drop 3
+                                                                                              (DL.take 4 x)))
+                                                        }
+                                   )
+                            finalbiomartregions
+  if | keepbiomart config
+     -> if | DL.last outputdir == '/'
+           -> do _ <- logMessage LogInfo
+                                 "Writing BioMart region data to file biomartresult.txt in output directory."
+                                 Null
+                 _ <- liftIO $ SIO.writeFile (outputdir ++ "biomartresult.txt")
+                                             returnedbiomartregions
+                 liftIO $ return processedregiondata
+           | otherwise
+           -> do _ <- logMessage LogInfo
+                                 "Writing BioMart region data to file biomartresult.txt in output directory."
+                                 Null
+                 _ <- liftIO $ SIO.writeFile (outputdir ++ "/" ++ "biomartresult.txt")
+                                             returnedbiomartregions
+                 liftIO $ return processedregiondata 
+     | otherwise
+     -> liftIO $ return processedregiondata
       where
         finalallensts = DText.pack
                         (DL.intercalate
@@ -181,9 +185,7 @@ runQueryBioMart config = do
                         allensts)
         allensts      = DL.nub
                         (DL.map (\x -> DText.unpack x)
-                        (DL.map (\x -> venst x)
+                        (DL.map (\x -> variant_enst x)
                         allvariants))
         allvariants   = variants config
         outputdir     = DText.unpack $ outputdirectory config
-
-{--------------------------}
