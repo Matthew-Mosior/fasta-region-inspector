@@ -1,6 +1,6 @@
-name:                Fasta-Region-Inspector
+name:                fasta-region-inspector
 version:             0.2.0.0
-github:              "Matthew-Mosior/Fasta-Region-Inspector"
+github:              "Matthew-Mosior/fasta-region-inspector"
 license:             BSD3
 author:              "Matthew C. Mosior"
 maintainer:          "mattm.github@gmail.com"
@@ -77,7 +77,7 @@ executables:
      - -with-rtsopts=-xn
      - -fllvm
     dependencies:
-     - Fasta-Region-Inspector
+     - fasta-region-inspector
 
 tests:
   fasta-region-inspector-test:
@@ -91,4 +91,4 @@ tests:
      - -with-rtsopts=-xn
      - -fllvm
     dependencies:
-     - Fasta-Region-Inspector 
+     - fasta-region-inspector 
