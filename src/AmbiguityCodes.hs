@@ -348,7 +348,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                            -> do --Current ambiguity codes and mapped strings
                                                  --are not correct for region strand
                                                  --(i.e. "-1" != "1" or "1" != "-1").
-                                                 let numofspaces      = DL.length ("[2023-11-24 13:08:58.663707325 EST] || LogTrace || Thread Id: ThreadId 4 || friApp || " :: String)
+                                                 let numofspaces      = DL.length ("                                                                                      " :: String)
                                                  let printnumofspaces = DL.replicate numofspaces ' '
                                                  _ <- liftIO $ showPrettyLog LogInfo
                                                                              "ambiguityCodesWithinRegionCheckSmall"
