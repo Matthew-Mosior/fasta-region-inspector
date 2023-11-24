@@ -9,7 +9,6 @@ import qualified Data.ByteString.UTF8                as UTF8
 import           Data.CSV  as DCSV
 import           Data.List as DL
 import           Data.Text as DText
-import           Data.Time as DTime
 import           System.IO as SIO
 
 numBytesUtf8Char :: Char
@@ -53,24 +52,3 @@ writeCSV config csvdata outputfilename =
                       csvdata
     where
       outputdir = DText.unpack $ outputdirectory config
-
-showPrettyZonedTime :: ZonedTime
-                    -> String
-showPrettyZonedTime currenttandd =
-  currenttanddnotimezone DL.++
-  zeroestoadd            DL.++
-  " "                    DL.++
-  currenttimezone
-    where
-      zeroestoadd            = DL.concat                                               $
-                               DL.map show                                             $
-                               DL.take (26 - (DL.length currenttanddnotimezone))       $
-                               DL.repeat 0
-      currenttanddnotimezone = DL.reverse
-                               (DL.drop 4
-                               (DL.reverse
-                               (show currenttandd)))
-      currenttimezone        = DL.reverse
-                               (DL.take 3
-                               (DL.reverse
-                               (show currenttandd)))

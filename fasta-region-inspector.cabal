@@ -32,6 +32,7 @@ library
       Linear.RegionsLinear
       Linear.UtilityLinear
       Linear.VariantLinear
+      Logging
       MacroFont
       QueryBioMart
       Region
@@ -64,8 +65,6 @@ library
     , http-types
     , ki-effectful
     , linear-base
-    , log-base
-    , log-effectful
     , parallel
     , pcre-heavy
     , process
@@ -116,8 +115,6 @@ executable fasta-region-inspector
     , http-types
     , ki-effectful
     , linear-base
-    , log-base
-    , log-effectful
     , parallel
     , pcre-heavy
     , process
@@ -169,8 +166,6 @@ test-suite fasta-region-inspector-test
     , http-types
     , ki-effectful
     , linear-base
-    , log-base
-    , log-effectful
     , parallel
     , pcre-heavy
     , process

@@ -34,9 +34,7 @@ dependencies:
 - http-client-tls
 - http-types
 - linear-base
-- log-base
 - ki-effectful
-- log-effectful
 - tls
 - MissingH
 - parallel

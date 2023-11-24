@@ -16,11 +16,11 @@ import           Data.Text           as DText
 import           Data.Vector.Unboxed as DVU
 import           Effectful
 import           Effectful.Ki
-import           Effectful.Log
+--import           Effectful.Log
 
 regionsLinear :: forall {es :: [Effect]}.
                  ( StructuredConcurrency :> es
-                 , Log :> es
+                 --, Log :> es
                  , IOE :> es
                  )
               => Maybe Text
@@ -41,9 +41,9 @@ regionsLinear tsswinsizec
                                                                                       mappedambiguitystrgroups
                                                                                       allregions
                --Prepare ambiguitycodeswithintss for printing.
-               _ <- logMessage LogInfo
-                               "Preparing ambiguity code strings final analysis." 
-                               Null
+               -- _ <- logMessage LogInfo
+               --                "Preparing ambiguity code strings final analysis." 
+               --                Null
                return $ (ambiguitycodeswithintss,prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss)
     False -> do ambiguitycodeswithintss <- ambiguityCodesWithinRegionCheck tsswinsizec
                                                                            config
@@ -51,7 +51,7 @@ regionsLinear tsswinsizec
                                                                            mappedambiguitystrgroups
                                                                            allregions
                 --Prepare ambiguitycodeswithintss for printing.
-                _ <- logMessage LogInfo
-                                "Preparing ambiguity code strings final analysis." 
-                                Null 
+                -- _ <- logMessage LogInfo
+                --                "Preparing ambiguity code strings final analysis." 
+                --                Null 
                 return $ (ambiguitycodeswithintss,prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss)

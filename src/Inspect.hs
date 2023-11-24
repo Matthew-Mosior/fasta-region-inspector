@@ -12,6 +12,7 @@ module Inspect where
 import Amalgamate
 import AmbiguityCodes
 import CmdOpts
+import Logging
 import QueryBioMart
 import Region
 import SequenceToVector
@@ -42,7 +43,6 @@ import           Data.Time as DTime
 import           Data.Traversable as DT
 import           Effectful
 import           Effectful.Ki
-import           Effectful.Log
 import           ELynx.Sequence.Import.Fasta as EISF
 import qualified ELynx.Alphabet.Alphabet as EDAA
 import qualified ELynx.Alphabet.Character as EDAC
@@ -53,58 +53,57 @@ import           Text.Regex.TDFA as TRTDFA
 
 fastaRegionInspect :: forall {es :: [Effect]} {b}.
                       ( StructuredConcurrency :> es
-                      , Log :> es
                       , IOE :> es
                       )
                    => FRIConfig
                    -> Eff es ()
 fastaRegionInspect config = do
   --Query biomart for Region data.
-  _ <- logMessage LogInfo
-                  "Query BioMart for regions data."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Querying BioMart for regions data."
   biomartregiondata <- runQueryBioMart config
   --Determine whether each variant is within
   --the TSS of the genes each variant is located in.
-  _ <- logMessage LogInfo
-                  "Determining whether each variant is within the its respective genes TSS."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Determining whether each variant is within its respective gene's TSS."
   let withintss = variantWithinRegionCheck config
                                            biomartregiondata
-   --Prepare withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss for printing.
-  _ <- logMessage LogInfo
-                  "Preparing variants final analysis."
-                  Null
+  --Prepare withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss for printing.
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Massaging TSS determination data into more usable format."
   let printreadywithintss = prepareWithinTSS withintss
   --Grab the reverse complement of the 
   --user defined ambiguity codes.
-  _ <- logMessage LogInfo
-                  "Calculating the reverse complement of each user defined ambiguity code."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Calculating the reverse complement of each user defined ambiguity code."
   let ambiguitycodesreversecomplements = ambiguityCodesReverseComplement config
   --Create list of tuples defining directionality of ambiguitycodes.
-  _ <- logMessage LogInfo
-                  "Creating list of tuples to define directionality of each forward strand ambiguity code."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Creating list of tuples to define directionality of each forward strand ambiguity code."
   let ambiguitycodesfinaltuple = DL.map (\x -> (x,"1"))
                                  (DL.map (DText.unpack) (ambiguitycodes config))
   --Create list of tuples defining directionality of ambiguitycodesreversecomplements.
-  _ <- logMessage LogInfo
-                  "Creating list of tuples to define directionality of each reverse strand ambiguity code."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Creating list of tuples to define directionality of each reverse strand ambiguity code."
   let ambiguitycodesreversecomplementstuple = DL.map (\x -> (x,"-1"))
                                               ambiguitycodesreversecomplements 
   --Grab all possible strings created from each ambiguity codes.
-  _ <- logMessage LogInfo
-                  "Generating all possible ambiguity codes strings using SMT solver."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Generating all possible ambiguity code strings using SMT solver."
   allmappedambiguitystrs <- liftIO $ allStrGeneration ( DL.map DText.unpack (ambiguitycodes config) ++
                                                         ambiguitycodesreversecomplements
                                                       ) 
   --Prepare allmappedambiguitystrs for ambiguityCodesWithinRegionCheck.
-  _ <- logMessage LogInfo
-                  "Preparing ambiguity code strings to determine whether each lies within its respective TSS."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "fastaRegionInspect"
+                              "Preparing ambiguity code strings to determine whether each lies within its respective TSS."
   let allmappedambiguitystrstuple = stringToTuple allmappedambiguitystrs  
   --Fork a scoped thread via effecful-ki
   --for variant and region analysis.
@@ -113,9 +112,9 @@ fastaRegionInspect config = do
       regions <- fork scope (do --Utilize linear resources to open the input
                                 --fasta file and read in the sequences associated with the
                                 --regions of interest.
-                                _ <- logMessage LogInfo
-                                                "Linearly processing all regions data."
-                                                Null
+                                _ <- liftIO $ showPrettyLog LogInfo
+                                                            "fastaRegionInspect"
+                                                            "Linearly processing all regions data."
                                 regionsLinear (tsswindowsize config)
                                               config
                                               (ambiguitycodesfinaltuple ++ ambiguitycodesreversecomplementstuple)
@@ -126,18 +125,18 @@ fastaRegionInspect config = do
     variantsf <- do variants <- fork scope (do --Utilize linear resources to open the input
                                                --fasta file and read in the sequence associated with
                                                --the variants sequence description.
-                                               _ <- logMessage LogInfo
-                                                               "Processing all variant data." 
-                                                               Null
+                                               _ <- liftIO $ showPrettyLog LogInfo
+                                                                           "fastaRegionInspect"
+                                                                           "Processing all variant data."
                                                variantLinear withintss
                                                              analysisreadyambiguitycodeswithintss
                                            )
                     --Wait for vaiants thread to terminate.
                     atomically $ await variants
     --Prepare withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss for printing.
-    _ <- logMessage LogInfo
-                    "Preparing variants final analysis."
-                    Null
+    _ <- liftIO $ showPrettyLog LogInfo
+                                "fastaRegionInspect"
+                                "Preparing variants for final analysis."
     let printreadywithintss = prepareWithinTSS withintss
     let printreadyambiguitycodeswithintss = DL.concat
                                             (DL.map
@@ -149,9 +148,9 @@ fastaRegionInspect config = do
     let finalvariantfile = amalgamateFinalVariantData printreadywithintss
                                                       variantsf
     --Prepare final print ready files with headers.
-    _ <- logMessage LogInfo
-                    "Preparing to print output CSV files."
-                    Null
+    _ <- liftIO $ showPrettyLog LogInfo
+                                "fastaRegionInspect"
+                                "Preparing to produce output CSV files."
     let finalprintreadyambiguitycodeswithintss = [ "Ambiguity_Code"
                                                  , "Mapped_Nucleotide_String"
                                                  , "Chromosome"
@@ -173,9 +172,9 @@ fastaRegionInspect config = do
     --let variantsinambiguitycodesandtsscsv = toCSV finalprintreadyvariantsinambiguitycodesandtss
     let finalvariantfilecsv = toCSV printreadyfinalvariantfile 
     --Print withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss to files.
-    _ <- logMessage LogInfo
-                    "Printing output CSV files."
-                    Null
+    _ <- liftIO $ showPrettyLog LogInfo
+                                "fastaRegionInspect"
+                                "Producing output CSV files."
     if | writeambiguitycodes config
        -> do liftIO $ writeCSV config
                                ambiguitycodeswithintsscsv
@@ -184,14 +183,14 @@ fastaRegionInspect config = do
                                finalvariantfilecsv
                                "variants_in_ambiguity_codes.csv"
              --Shut down FRI.
-             logMessage LogInfo
-                        "Shutting down Fasta Region Inspector v0.2.0.0."
-                        Null
+             liftIO $ showPrettyLog LogInfo
+                                    "fastaRegionInspect"
+                                    "Shutting down fasta-region-inspector v0.2.0.0."
        | otherwise
        -> do liftIO $ writeCSV config
                                finalvariantfilecsv 
                                "variants_in_ambiguity_codes.csv"
              --Shut down FRI.
-             logMessage LogInfo
-                        "Shutting down Fasta Region Inspector v0.2.0.0."
-                        Null
+             liftIO $ showPrettyLog LogInfo
+                                    "fastaRegionInspect"
+                                    "Shutting down fasta-region-inspector v0.2.0.0."

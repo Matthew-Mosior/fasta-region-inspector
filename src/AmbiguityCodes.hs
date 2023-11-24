@@ -8,6 +8,7 @@
 
 module AmbiguityCodes where
 
+import Logging
 import Types
 
 import Linear.UtilityLinear
@@ -32,7 +33,6 @@ import Data.Vector.Storable.ByteString as DVSBS
 import Data.Vector.Unboxed as DVU
 import Effectful
 import Effectful.Ki
-import Effectful.Log
 
 reverseComplementNucleotide :: DB.ByteString
                             -> DB.ByteString
@@ -73,27 +73,27 @@ grabRegionSequence currentsequence
       currentregiontss    = DText.unpack (biomartregion_tss currentregion)
       currentregionstrand = DText.unpack (biomartregion_strand currentregion)
 
-subStrLocationsSmallForward :: ( MonadIO m
-                               , MonadLog m
+subStrLocationsSmallForward :: forall {es :: [Effect]} {b}.
+                               ( IOE :> es
                                )
                             => Maybe Text
                             -> [String]
                             -> BioMartRegion
                             -> Vector Char
-                            -> m [[Int]]
+                            -> Eff es [[Int]]
 subStrLocationsSmallForward _ [] _ _ = return []
 subStrLocationsSmallForward tsswinsizec
                             (currentmappedambstr:restofmappedambstrs)
                             currentregion
                             finalfastafile = do
-  _ <- logMessage LogInfo
-                  ( "Processing mapped ambiguity code "
-                    `append`
-                    (DText.pack currentmappedambstr)
-                    `append`
-                    "."
-                  )
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "subStrLocationsSmallForward"
+                              ( "Processing mapped ambiguity code "
+                                DL.++
+                                currentmappedambstr
+                                DL.++
+                                "."
+                              )
   if | DMaybe.isJust tsswinsizec
      -> do res <- subStrLocationsSmallForward tsswinsizec
                                               restofmappedambstrs
@@ -115,27 +115,27 @@ subStrLocationsSmallForward tsswinsizec
                                     currentregion
                                     2000)) : res
 
-subStrLocationsSmallReverse :: ( MonadIO m
-                               , MonadLog m
+subStrLocationsSmallReverse :: forall {es :: [Effect]} {b}.
+                               ( IOE :> es
                                )
                             => Maybe Text
                             -> [String]
                             -> BioMartRegion
                             -> Vector Char
-                            -> m [[Int]]
+                            -> Eff es [[Int]]
 subStrLocationsSmallReverse _ [] _ _ = return []
 subStrLocationsSmallReverse tsswinsizec
                             (currentmappedambstr:restofmappedambstrs)
                             currentregion
                             finalfastafile = do
-  _ <- logMessage LogInfo
-                  ( "Processing mapped ambiguity code "
-                    `append`
-                    (DText.pack currentmappedambstr)
-                    `append`
-                    "."
-                  )
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "subStrLocationsSmallReverse"
+                              ( "Processing mapped ambiguity code "
+                                DL.++
+                                currentmappedambstr
+                                DL.++
+                                "."
+                              )
   if | DMaybe.isJust tsswinsizec
      -> do res <- subStrLocationsSmallReverse tsswinsizec
                                               restofmappedambstrs
@@ -165,14 +165,14 @@ subStrLocationsSmallReverse tsswinsizec
                                                        currentregion
                                                        2000)))) : res
 
-subStrLocations :: ( MonadIO m
-                   , MonadLog m
+subStrLocations :: forall {es :: [Effect]} {b}.
+                   ( IOE :> es
                    )
                 => Maybe Text
                 -> [String]
                 -> BioMartRegion
                 -> Vector Char
-                -> m [[Int]]
+                -> Eff es [[Int]]
 subStrLocations _ [] _ _ = return []
 subStrLocations tsswinsizec
                 allmappedambiguitystrs
@@ -222,7 +222,6 @@ subStrLocations tsswinsizec
 
 ambiguityCodesWithinRegionCheckIgnoreStrandSmall :: forall {es :: [Effect]} {b}.
                                                     ( StructuredConcurrency :> es
-                                                    , Log :> es
                                                     , IOE :> es
                                                     )
                                                  => Maybe Text
@@ -253,14 +252,14 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                                     , currentregionstrand
                                                                     , currentregiongenename
                                                                     ]
-                                        _ <- logMessage LogInfo
-                                                        ( "Processing region data associated with gene "
-                                                          `append`
-                                                          (DText.pack currentregiongenename)
-                                                          `append`
-                                                          "."
-                                                        )
-                                                        Null
+                                        _ <- liftIO $ showPrettyLog LogInfo
+                                                                    "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                    ( "Processing region data associated with gene "
+                                                                      DL.++
+                                                                      currentregiongenename
+                                                                      DL.++
+                                                                      "."
+                                                                    )
                                         --Ignore strandedness, find both the ambiguity mapped strings
                                         --and the reverse complement ambiguity mapped strings.
                                         --Grab locations of mapped ambiguity codes,
@@ -288,7 +287,6 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
 
 ambiguityCodesWithinRegionCheckSmall :: forall {es :: [Effect]} {b}.
                                         ( StructuredConcurrency :> es
-                                        , Log :> es
                                         , IOE :> es
                                         )
                                      => Maybe Text
@@ -319,14 +317,14 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                                     , currentregionstrand
                                                                     , currentregiongenename
                                                                     ]
-                                        _ <- logMessage LogInfo
-                                                        ( "Processing region data associated with gene "
-                                                          `append`
-                                                          (DText.pack currentregiongenename)
-                                                          `append`
-                                                          "."
-                                                        )
-                                                        Null
+                                        _ <- liftIO $ showPrettyLog LogInfo
+                                                                    "ambiguityCodesWithinRegionCheckSmall"
+                                                                    ( "Processing region data associated with gene "
+                                                                      DL.++
+                                                                      currentregiongenename
+                                                                      DL.++
+                                                                      "."
+                                                                    )
                                         if | currentregionstrand == currentstrand
                                            -> do --Grab locations of mapped am codes,
                                                  --and recurse.
@@ -350,26 +348,26 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                            -> do --Current ambiguity codes and mapped strings
                                                  --are not correct for region strand
                                                  --(i.e. "-1" != "1" or "1" != "-1").
-                                                 let numofspaces      = DText.length "                               "
-                                                 let printnumofspaces = DText.replicate numofspaces (DText.singleton ' ')
-                                                 _ <- logMessage LogInfo
-                                                                 ( "Could not process region data associated with current ambiguity code "
-                                                                   `append`
-                                                                   (DText.pack currentambcode)
-                                                                   `append`
-                                                                   ":\n"
-                                                                   `append`
-                                                                   printnumofspaces
-                                                                   `append`
-                                                                   (DText.pack currentambcode)
-                                                                   `append`
-                                                                   " strand orientation is "
-                                                                   `append`
-                                                                   (DText.pack currentregionstrand)
-                                                                   `append`
-                                                                   "."
-                                                                 )
-                                                                 Null
+                                                 let numofspaces      = DL.length ("[2023-11-24 13:08:58.663707325 EST] || LogTrace || Thread Id: ThreadId 4 || friApp || " :: String)
+                                                 let printnumofspaces = DL.replicate numofspaces ' '
+                                                 _ <- liftIO $ showPrettyLog LogInfo
+                                                                             "ambiguityCodesWithinRegionCheckSmall"
+                                                                             ( "Could not process region data associated with current ambiguity code "
+                                                                               DL.++
+                                                                               currentambcode
+                                                                               DL.++
+                                                                               ":\n"
+                                                                               DL.++
+                                                                               printnumofspaces
+                                                                               DL.++
+                                                                               currentambcode
+                                                                               DL.++
+                                                                               " strand orientation is "
+                                                                               DL.++
+                                                                               currentregionstrand
+                                                                               DL.++
+                                                                               "."
+                                                                             )
                                                  return $ ( currentambcode
                                                           , DL.map fst allmappedambiguitystrs
                                                           , allcurrentregiondata
@@ -380,7 +378,6 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
 
 ambiguityCodesWithinRegionCheckIgnoreStrand :: forall {es :: [Effect]} {b}.
                                                ( StructuredConcurrency :> es
-                                               , Log :> es
                                                , IOE :> es
                                                )
                                             => Maybe Text
@@ -411,7 +408,6 @@ ambiguityCodesWithinRegionCheckIgnoreStrand tsswinsizec
 
 ambiguityCodesWithinRegionCheck :: forall {es :: [Effect]} {b}.
                                    ( StructuredConcurrency :> es
-                                   , Log :> es
                                    , IOE :> es
                                    )
                                 => Maybe Text

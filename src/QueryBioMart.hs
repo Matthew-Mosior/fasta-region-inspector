@@ -1,9 +1,14 @@
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE MultiWayIf         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module QueryBioMart where
 
+import Logging 
 import Types
 
 import Control.Monad as CM
@@ -21,8 +26,7 @@ import qualified Data.Text.Lazy as DTL
 import qualified Data.Text.Lazy.IO as DTLIO
 import qualified Data.Map as Map
 import Data.Time as DTime
-import Effectful (liftIO,MonadIO, MonadUnliftIO (withRunInIO))
-import Effectful.Log
+import Effectful 
 import Network.Connection as NC
 import Network.HTTP.Client as NHTTPC
 import Network.HTTP.Client.TLS as NHTTPTLS
@@ -37,16 +41,16 @@ import System.IO as SIO
 import System.Process as SP
 import Text.XML as TXML
 
-runQueryBioMart :: ( MonadIO m
-                   , MonadLog m
-                   )
+runQueryBioMart :: forall {es :: [Effect]}.
+                 ( IOE :> es
+                 )
                 => FRIConfig
-                -> m [BioMartRegion]
+                -> Eff es [BioMartRegion]
 runQueryBioMart config = do
   --Generate BioMart compatible xml.
-  _ <- logMessage LogInfo
-                  "Generating BioMart compatible XML."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "runQueryBioMart"
+                              "Generating BioMart compatible XML."
   let biomartxml = TXML.Element "Query" (Map.fromList [ ("virtualSchemaName","default")
                                                       , ("formatter","CSV")
                                                       , ("header","0")
@@ -127,18 +131,18 @@ runQueryBioMart config = do
                               }
                                 where
                                   statusCodeR = NHTTPT.statusCode DF.. responseStatus
-  _ <- logMessage LogInfo
-                  "Querying and downloading region data from BioMart via HTTP request."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "runQueryBioMart"
+                              "Querying and downloading region data from BioMart via HTTP request."
   biomartrequest <- runReq httpconfig $ do
                       let params = "query" =: ((DTextL.toStrict $ renderText def finalbiomartxml) :: DText.Text)
                       req NHR.POST (http "www.ensembl.org" /: "biomart" /: "martservice")
                                    (ReqBodyUrlEnc params)
                                    bsResponse
                                    mempty
-  _ <- logMessage LogInfo
-                  "Successfully queried and returned region data from BioMart via HTTP request."
-                  Null
+  _ <- liftIO $ showPrettyLog LogInfo
+                              "runQueryBioMart"
+                              "Successfully queried and returned region data from BioMart via HTTP request."
   let returnedbiomartregions = DBC8.unpack $
                                NHR.responseBody biomartrequest 
   let finalbiomartregions = DL.map (\x -> DLS.splitOn "," x)
@@ -163,16 +167,16 @@ runQueryBioMart config = do
                             finalbiomartregions
   if | keepbiomart config
      -> if | DL.last outputdir == '/'
-           -> do _ <- logMessage LogInfo
-                                 "Writing BioMart region data to file biomartresult.txt in output directory."
-                                 Null
+           -> do _ <- liftIO $ showPrettyLog LogInfo
+                                             "runQueryBioMart"
+                                             "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "biomartresult.txt")
                                              returnedbiomartregions
                  liftIO $ return processedregiondata
            | otherwise
-           -> do _ <- logMessage LogInfo
-                                 "Writing BioMart region data to file biomartresult.txt in output directory."
-                                 Null
+           -> do _ <- liftIO $ showPrettyLog LogInfo
+                                             "runQueryBioMart"
+                                             "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "/" ++ "biomartresult.txt")
                                              returnedbiomartregions
                  liftIO $ return processedregiondata 

@@ -11,6 +11,7 @@ module RunFRI where
 
 import CmdOpts
 import Inspect
+import Logging
 import Types
 import YamlParser
 
@@ -22,7 +23,6 @@ import Data.Text as DText
 import Data.Yaml as DYaml
 import Effectful
 import Effectful.Ki
-import Effectful.Log
 import System.Directory as SD
 import System.Environment as SE
 import System.Exit as SX
@@ -82,16 +82,8 @@ processConfigurationYaml config = do
      | otherwise
      -> return False  
 
-{-
-runFastaRegionInspector :: ( MonadIO m
-                           , MonadLog m
-                           )
-                        => ([Flag],[FilePath])
-                        -> m ()
--}
 runFastaRegionInspector :: forall {es :: [Effect]} {b}.
                            ( StructuredConcurrency :> es
-                           , Log :> es
                            , IOE :> es
                            )
                         => ([Flag],[FilePath])
@@ -109,7 +101,7 @@ runFastaRegionInspector (_,inputfiles) = do
      -> fastaRegionInspect decodedinputyaml
      | otherwise
      -> do --Print out failure message.
-           _ <- logMessage LogAttention
-                           "Could not sanitize Configuration YAML."
-                           Null
+           _ <- liftIO $ showPrettyLog LogDebug
+                                       "runFastaRegionInspector"
+                                       "Could not sanitize Configuration YAML."
            liftIO $ SX.exitWith (SX.ExitFailure 1)

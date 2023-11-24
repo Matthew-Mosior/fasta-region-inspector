@@ -16,11 +16,9 @@ import           Data.Text           as DText
 import           Data.Vector.Unboxed as DVU
 import           Effectful
 import           Effectful.Ki
-import           Effectful.Log
 
 variantLinear :: forall {es :: [Effect]}.
                  ( StructuredConcurrency :> es
-                 , Log :> es
                  , IOE :> es
                  )
               => [[(Variant,BioMartRegion,Char)]]
