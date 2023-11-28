@@ -11,14 +11,6 @@ import           Data.List as DL
 import           Data.Text as DText
 import           System.IO as SIO
 
-numBytesUtf8Char :: Char
-                 -> Int
-numBytesUtf8Char =
-  BS.length . UTF8.fromString . charToString
-    where
-      charToString :: Char -> String
-      charToString c = [c]
-
 numBytesUtf8String :: String
                    -> Int
 numBytesUtf8String = BS.length . UTF8.fromString
