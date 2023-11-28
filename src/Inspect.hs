@@ -15,7 +15,6 @@ import CmdOpts
 import Logging
 import QueryBioMart
 import Region
-import SequenceToVector
 import Utility
 import Variant
 import Types

@@ -37,7 +37,6 @@ library
       QueryBioMart
       Region
       RunFRI
-      SequenceToVector
       Types
       Utility
       Variant
