@@ -11,6 +11,7 @@ import Utility
 import qualified System.IO.Resource.Linear           as Linear
 import qualified Control.Functor.Linear              as Control
 import           Data.List                           as DL
+import           Data.List.Linear                    as DLL
 import           Data.Ord                            as DO
 import           Data.Text (Text(..),splitOn,unpack)
 import qualified Data.Unrestricted.Linear
@@ -35,7 +36,7 @@ getFAILineLinear config
     (cfai,handle'') <- Linear.hGetLine handle'
     ()              <- Linear.hClose handle''
     Control.return cfai
-  case (unpack cfai) == (unpack $ biomartregion_sequencedescription currentregion) of
+  case (DLL.takeWhile (/= ' ') (unpack cfai)) == (unpack $ biomartregion_sequencedescription currentregion) of
     True  -> do let cfaif = splitOn "\t"
                                     cfai
                 Prelude.return $ FAI { fai_name      = cfaif Prelude.!! 0
