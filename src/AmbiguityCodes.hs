@@ -76,17 +76,20 @@ grabRegionSequence currentsequence
 subStrLocationsSmallForward :: forall {es :: [Effect]} {b}.
                                ( IOE :> es
                                )
-                            => Maybe Text
+                            => FRIConfig
+                            -> Maybe Text
                             -> [String]
                             -> BioMartRegion
                             -> Vector Char
                             -> Eff es [[Int]]
-subStrLocationsSmallForward _ [] _ _ = return []
-subStrLocationsSmallForward tsswinsizec
+subStrLocationsSmallForward _ _ [] _ _ = return []
+subStrLocationsSmallForward config
+                            tsswinsizec
                             (currentmappedambstr:restofmappedambstrs)
                             currentregion
                             finalfastafile = do
   _ <- liftIO $ showPrettyLog LogInfo
+                              (maxnumberconcthreads config)
                               "subStrLocationsSmallForward"
                               ( "Processing mapped ambiguity code "
                                 DL.++
@@ -95,7 +98,8 @@ subStrLocationsSmallForward tsswinsizec
                                 "."
                               )
   if | DMaybe.isJust tsswinsizec
-     -> do res <- subStrLocationsSmallForward tsswinsizec
+     -> do res <- subStrLocationsSmallForward config
+                                              tsswinsizec
                                               restofmappedambstrs
                                               currentregion
                                               finalfastafile
@@ -105,7 +109,8 @@ subStrLocationsSmallForward tsswinsizec
                                     currentregion
                                     (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int))) : res
      | otherwise
-     -> do res <- subStrLocationsSmallForward tsswinsizec
+     -> do res <- subStrLocationsSmallForward config
+                                              tsswinsizec
                                               restofmappedambstrs
                                               currentregion
                                               finalfastafile
@@ -118,17 +123,20 @@ subStrLocationsSmallForward tsswinsizec
 subStrLocationsSmallReverse :: forall {es :: [Effect]} {b}.
                                ( IOE :> es
                                )
-                            => Maybe Text
+                            => FRIConfig
+                            -> Maybe Text
                             -> [String]
                             -> BioMartRegion
                             -> Vector Char
                             -> Eff es [[Int]]
-subStrLocationsSmallReverse _ [] _ _ = return []
-subStrLocationsSmallReverse tsswinsizec
+subStrLocationsSmallReverse _ _ [] _ _ = return []
+subStrLocationsSmallReverse config
+                            tsswinsizec
                             (currentmappedambstr:restofmappedambstrs)
                             currentregion
                             finalfastafile = do
   _ <- liftIO $ showPrettyLog LogInfo
+                              (maxnumberconcthreads config)
                               "subStrLocationsSmallReverse"
                               ( "Processing mapped ambiguity code "
                                 DL.++
@@ -137,7 +145,8 @@ subStrLocationsSmallReverse tsswinsizec
                                 "."
                               )
   if | DMaybe.isJust tsswinsizec
-     -> do res <- subStrLocationsSmallReverse tsswinsizec
+     -> do res <- subStrLocationsSmallReverse config
+                                              tsswinsizec
                                               restofmappedambstrs
                                               currentregion
                                               finalfastafile
@@ -151,7 +160,8 @@ subStrLocationsSmallReverse tsswinsizec
                                                        currentregion
                                                        (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int))))) : res
      | otherwise
-     -> do res <- subStrLocationsSmallReverse tsswinsizec
+     -> do res <- subStrLocationsSmallReverse config
+                                              tsswinsizec
                                               restofmappedambstrs
                                               currentregion
                                               finalfastafile
@@ -168,19 +178,22 @@ subStrLocationsSmallReverse tsswinsizec
 subStrLocations :: forall {es :: [Effect]} {b}.
                    ( IOE :> es
                    )
-                => Maybe Text
+                => FRIConfig
+                -> Maybe Text
                 -> [String]
                 -> BioMartRegion
                 -> Vector Char
                 -> Eff es [[Int]]
-subStrLocations _ [] _ _ = return []
-subStrLocations tsswinsizec
+subStrLocations _ _ [] _ _ = return []
+subStrLocations config
+                tsswinsizec
                 allmappedambiguitystrs
                 currentregion
                 fastaseq = do
   if | DMaybe.isJust tsswinsizec
      -> if | currentregionstrand == "-1"
-           -> do reversesubstrlocs <- subStrLocationsSmallReverse tsswinsizec
+           -> do reversesubstrlocs <- subStrLocationsSmallReverse config
+                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -189,7 +202,8 @@ subStrLocations tsswinsizec
                           reversesubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
-           -> do forwardsubstrlocs <- subStrLocationsSmallForward tsswinsizec
+           -> do forwardsubstrlocs <- subStrLocationsSmallForward config
+                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -199,7 +213,8 @@ subStrLocations tsswinsizec
                           `CPS.using` (CPS.parList CPS.rdeepseq))
      | otherwise
      -> if | currentregionstrand == "-1"
-           -> do reversesubstrlocs <- subStrLocationsSmallReverse tsswinsizec
+           -> do reversesubstrlocs <- subStrLocationsSmallReverse config
+                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -208,7 +223,8 @@ subStrLocations tsswinsizec
                           reversesubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
-           -> do forwardsubstrlocs <- subStrLocationsSmallForward tsswinsizec
+           -> do forwardsubstrlocs <- subStrLocationsSmallForward config
+                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
                                                                   currentregion
                                                                   fastaseq
@@ -242,48 +258,78 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                  allmappedambiguitystrs
                                                  allregions =
   scoped $ \scope -> do
-    DT.forM allregions $ \currentregion -> do
-      regioncheckdata <- fork scope (do let currentregionchr      = DText.unpack (biomartregion_sequencedescription currentregion)
-                                        let currentregiontss      = DText.unpack (biomartregion_tss currentregion)
-                                        let currentregionstrand   = DText.unpack (biomartregion_strand currentregion)
-                                        let currentregiongenename = DText.unpack (biomartregion_genename currentregion)
-                                        let allcurrentregiondata  = [ currentregionchr
-                                                                    , currentregiontss
-                                                                    , currentregionstrand
-                                                                    , currentregiongenename
-                                                                    ]
-                                        _ <- liftIO $ showPrettyLog LogInfo
-                                                                    "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
-                                                                    ( "Processing region data associated with gene "
-                                                                      DL.++
-                                                                      currentregiongenename
-                                                                      DL.++
-                                                                      "."
-                                                                    )
-                                        --Ignore strandedness, find both the ambiguity mapped strings
-                                        --and the reverse complement ambiguity mapped strings.
-                                        --Grab locations of mapped ambiguity codes,
-                                        --and recurse.
-                                        --Grab locations of mapped am codes,
-                                        --and recurse.
-                                        cfai       <- liftIO $ getFAILineLinear config
-                                                                                currentregion
-                                                                                (toInteger 0)
-                                        fastaseq   <- liftIO $ getFASTASequenceLinear config
-                                                                                      cfai
-                                                                                      (toInteger 0)
-                                                                                      DVU.empty 
-                                        substrlocs <- subStrLocations tsswinsizec
-                                                                      (DL.map fst allmappedambiguitystrs)
-                                                                      currentregion
-                                                                      ((\(FASTASequence seq) -> seq) fastaseq)
-                                        return $ ( currentambcode
-                                                 , DL.map fst allmappedambiguitystrs
-                                                 , allcurrentregiondata
-                                                 , substrlocs
+    allregioncheckdata <- DT.forM allregions $ \currentregion -> do
+      fork scope (do let currentregionchr      = DText.unpack (biomartregion_sequencedescription currentregion)
+                     let currentregiontss      = DText.unpack (biomartregion_tss currentregion)
+                     let currentregionstrand   = DText.unpack (biomartregion_strand currentregion)
+                     let currentregiongenename = DText.unpack (biomartregion_genename currentregion)
+                     let allcurrentregiondata  = [ currentregionchr
+                                                 , currentregiontss
+                                                 , currentregionstrand
+                                                 , currentregiongenename
+                                                 ]
+                     _ <- liftIO $ showPrettyLog LogInfo
+                                                 (maxnumberconcthreads config)
+                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                 ( "Processing region data associated with gene "
+                                                   DL.++
+                                                   currentregiongenename
+                                                   DL.++
+                                                   "."
                                                  )
-                                    )
-      atomically $ await regioncheckdata
+                     --Ignore strandedness, find both the ambiguity mapped strings
+                     --and the reverse complement ambiguity mapped strings.
+                     --Grab locations of mapped ambiguity codes,
+                     --and recurse.
+                     --Grab locations of mapped am codes,
+                     --and recurse.
+                     _ <- liftIO $ showPrettyLog LogInfo
+                                                 (maxnumberconcthreads config)
+                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                 ( "Reading fasta index file (fai file) for "
+                                                   DL.++
+                                                   currentregiongenename
+                                                   DL.++
+                                                   "."
+                                                 )
+                     cfai       <- liftIO $ getFAILineLinear config
+                                                             currentregion
+                                                             (toInteger 0)
+                     _ <- liftIO $ showPrettyLog LogInfo
+                                                 (maxnumberconcthreads config)
+                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                 ( "Reading in fasta file for "
+                                                   DL.++
+                                                   currentregiongenename
+                                                   DL.++
+                                                   "."
+                                                 )
+                     fastaseq   <- liftIO $ getFASTASequenceLinear config
+                                                                   cfai
+                                                                   (toInteger 0)
+                                                                   DVU.empty
+                     _ <- liftIO $ showPrettyLog LogInfo
+                                                 (maxnumberconcthreads config)
+                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                 ( "Grabbing all mapped ambiguity string locations for "
+                                                   DL.++
+                                                   currentregiongenename
+                                                   DL.++
+                                                   "."
+                                                 )
+                     substrlocs <- subStrLocations config
+                                                   tsswinsizec
+                                                   (DL.map fst allmappedambiguitystrs)
+                                                   currentregion
+                                                   ((\(FASTASequence seq) -> seq) fastaseq)
+                     return $ ( currentambcode
+                              , DL.map fst allmappedambiguitystrs
+                              , allcurrentregiondata
+                              , substrlocs
+                              )
+                 )
+    DT.forM allregioncheckdata $ \currentregioncheckdata ->
+      atomically $ await currentregioncheckdata
 
 ambiguityCodesWithinRegionCheckSmall :: forall {es :: [Effect]} {b}.
                                         ( StructuredConcurrency :> es
@@ -307,74 +353,101 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                      allmappedambiguitystrs
                                      allregions =
   scoped $ \scope -> do
-    DT.forM allregions $ \currentregion -> do
-      regioncheckdata <- fork scope (do let currentregionchr      = DText.unpack (biomartregion_sequencedescription currentregion)
-                                        let currentregiontss      = DText.unpack (biomartregion_tss currentregion)
-                                        let currentregionstrand   = DText.unpack (biomartregion_strand currentregion)
-                                        let currentregiongenename = DText.unpack (biomartregion_genename currentregion)
-                                        let allcurrentregiondata  = [ currentregionchr
-                                                                    , currentregiontss
-                                                                    , currentregionstrand
-                                                                    , currentregiongenename
-                                                                    ]
-                                        _ <- liftIO $ showPrettyLog LogInfo
-                                                                    "ambiguityCodesWithinRegionCheckSmall"
-                                                                    ( "Processing region data associated with gene "
-                                                                      DL.++
-                                                                      currentregiongenename
-                                                                      DL.++
-                                                                      "."
-                                                                    )
-                                        if | currentregionstrand == currentstrand
-                                           -> do --Grab locations of mapped am codes,
-                                                 --and recurse.
-                                                 cfai       <- liftIO $ getFAILineLinear config
-                                                                                         currentregion
-                                                                                         (toInteger 0)
-                                                 fastaseq   <- liftIO $ getFASTASequenceLinear config
-                                                                                               cfai
-                                                                                               (toInteger 0)
-                                                                                               DVU.empty 
-                                                 substrlocs <- subStrLocations tsswinsizec
-                                                                               (DL.map fst allmappedambiguitystrs)
-                                                                               currentregion
-                                                                               ((\(FASTASequence seq) -> seq) fastaseq)
-                                                 return $ ( currentambcode
-                                                          , DL.map fst allmappedambiguitystrs
-                                                          , allcurrentregiondata
-                                                          , substrlocs
+    allregioncheckdata <- DT.forM allregions $ \currentregion -> do
+      fork scope (do let currentregionchr      = DText.unpack (biomartregion_sequencedescription currentregion)
+                     let currentregiontss      = DText.unpack (biomartregion_tss currentregion)
+                     let currentregionstrand   = DText.unpack (biomartregion_strand currentregion)
+                     let currentregiongenename = DText.unpack (biomartregion_genename currentregion)
+                     let allcurrentregiondata  = [ currentregionchr
+                                                 , currentregiontss
+                                                 , currentregionstrand
+                                                 , currentregiongenename
+                                                 ]
+                     _ <- liftIO $ showPrettyLog LogInfo
+                                                 (maxnumberconcthreads config)
+                                                 "ambiguityCodesWithinRegionCheckSmall"
+                                                 ( "Processing region data associated with gene "
+                                                   DL.++
+                                                   currentregiongenename
+                                                   DL.++
+                                                   "."
+                                                 )
+                     if | currentregionstrand == currentstrand
+                        -> do --Grab locations of mapped am codes,
+                              --and recurse.
+                              _ <- liftIO $ showPrettyLog LogInfo
+                                                          (maxnumberconcthreads config)
+                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                          ( "Reading fasta index file for "
+                                                            DL.++
+                                                            currentregiongenename
+                                                            DL.++
+                                                            "."
                                                           )
-                                           | otherwise
-                                           -> do --Current ambiguity codes and mapped strings
-                                                 --are not correct for region strand
-                                                 --(i.e. "-1" != "1" or "1" != "-1").
-                                                 let numofspaces      = DL.length ("                                                                                      " :: String)
-                                                 let printnumofspaces = DL.replicate numofspaces ' '
-                                                 _ <- liftIO $ showPrettyLog LogInfo
-                                                                             "ambiguityCodesWithinRegionCheckSmall"
-                                                                             ( "Could not process region data associated with current ambiguity code "
-                                                                               DL.++
-                                                                               currentambcode
-                                                                               DL.++
-                                                                               ":\n"
-                                                                               DL.++
-                                                                               printnumofspaces
-                                                                               DL.++
-                                                                               currentambcode
-                                                                               DL.++
-                                                                               " strand orientation is "
-                                                                               DL.++
-                                                                               currentregionstrand
-                                                                               DL.++
-                                                                               "."
-                                                                             )
-                                                 return $ ( currentambcode
-                                                          , DL.map fst allmappedambiguitystrs
-                                                          , allcurrentregiondata
-                                                          , []
+                              cfai       <- liftIO $ getFAILineLinear config
+                                                                      currentregion
+                                                                      (toInteger 0)
+                              _ <- liftIO $ showPrettyLog LogInfo
+                                                          (maxnumberconcthreads config)
+                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                          ( "Reading in fasta file for "
+                                                            DL.++
+                                                            currentregiongenename
+                                                            DL.++
+                                                            "."
                                                           )
-                                    )
-      atomically $ await regioncheckdata                     
+                              fastaseq   <- liftIO $ getFASTASequenceLinear config
+                                                                            cfai
+                                                                            (toInteger 0)
+                                                                            DVU.empty
+                              _ <- liftIO $ showPrettyLog LogInfo
+                                                          (maxnumberconcthreads config)
+                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                          ( "Grabbing all mapped ambiguity string locations for "
+                                                            DL.++
+                                                            currentregiongenename
+                                                            DL.++
+                                                            "."
+                                                          )
+                              substrlocs <- subStrLocations config
+                                                            tsswinsizec
+                                                            (DL.map fst allmappedambiguitystrs)
+                                                            currentregion
+                                                            ((\(FASTASequence seq) -> seq) fastaseq)
+                              return $ ( currentambcode
+                                       , DL.map fst allmappedambiguitystrs
+                                       , allcurrentregiondata
+                                       , substrlocs
+                                       )
+                        | otherwise
+                        -> do --Current ambiguity codes and mapped strings
+                              --are not correct for region strand
+                              --(i.e. "-1" != "1" or "1" != "-1").
+                              _ <- liftIO $ showPrettyLog LogInfo
+                                                          (maxnumberconcthreads config)
+                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                          ( "Could not process region data associated with current ambiguity code "
+                                                            DL.++
+                                                            currentambcode
+                                                            DL.++
+                                                            ": "
+                                                            DL.++
+                                                            currentambcode
+                                                            DL.++
+                                                            " strand orientation is "
+                                                            DL.++
+                                                            currentregionstrand
+                                                            DL.++
+                                                            "."
+                                                          )
+                              return $ ( currentambcode
+                                       , DL.map fst allmappedambiguitystrs
+                                       , allcurrentregiondata
+                                       , []
+                                       )
+                 )
+    DT.forM allregioncheckdata $ \currentregioncheckdata ->
+      atomically $ await currentregioncheckdata
 
 ambiguityCodesWithinRegionCheckIgnoreStrand :: forall {es :: [Effect]} {b}.
                                                ( StructuredConcurrency :> es

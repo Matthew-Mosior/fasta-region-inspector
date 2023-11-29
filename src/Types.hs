@@ -9,15 +9,16 @@ import Data.Vector.Unboxed
 import Control.Applicative as CA
 import GHC.Generics 
 
-data FRIConfig = FRIConfig { fasta               :: Text
-                           , fai                 :: Text
-                           , variants            :: [Variant]
-                           , ambiguitycodes      :: [Text]
-                           , outputdirectory     :: Text
-                           , tsswindowsize       :: Maybe Text
-                           , keepbiomart         :: Bool
-                           , ignorestrandedness  :: Bool
-                           , writeambiguitycodes :: Bool
+data FRIConfig = FRIConfig { fasta                :: Text
+                           , fai                  :: Text
+                           , variants             :: [Variant]
+                           , ambiguitycodes       :: [Text]
+                           , outputdirectory      :: Text
+                           , tsswindowsize        :: Maybe Text
+                           , keepbiomart          :: Bool
+                           , ignorestrandedness   :: Bool
+                           , writeambiguitycodes  :: Bool
+                           , maxnumberconcthreads :: Int
                            } deriving (Eq,Generic,Show,Read)
 
 data Variant = Variant { variant_sample              :: Text

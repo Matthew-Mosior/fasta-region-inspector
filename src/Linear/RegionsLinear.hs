@@ -40,18 +40,10 @@ regionsLinear tsswinsizec
                                                                                       ambcodes
                                                                                       mappedambiguitystrgroups
                                                                                       allregions
-               --Prepare ambiguitycodeswithintss for printing.
-               -- _ <- logMessage LogInfo
-               --                "Preparing ambiguity code strings final analysis." 
-               --                Null
                return $ (ambiguitycodeswithintss,prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss)
     False -> do ambiguitycodeswithintss <- ambiguityCodesWithinRegionCheck tsswinsizec
                                                                            config
                                                                            ambcodes
                                                                            mappedambiguitystrgroups
                                                                            allregions
-                --Prepare ambiguitycodeswithintss for printing.
-                -- _ <- logMessage LogInfo
-                --                "Preparing ambiguity code strings final analysis." 
-                --                Null 
                 return $ (ambiguitycodeswithintss,prepareAmbiguityCodesWithinTSS ambiguitycodeswithintss)

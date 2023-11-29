@@ -30,26 +30,30 @@ import System.IO as SIO
 import Text.Regex as TR
 import Text.Regex.TDFA as TRTDFA
 
-tssWindowSizeCheck :: FRIConfig -> Bool
-tssWindowSizeCheck config = if | DMaybe.isJust (tsswindowsize config)
-                               -> if | DL.all (DC.isDigit)
-                                              (DText.unpack
-                                              (DMaybe.fromJust
-                                              (tsswindowsize config)))
-                                     -> True
-                                     | otherwise
-                                     -> False
-                               | otherwise
-                               -> True
+tssWindowSizeCheck :: FRIConfig
+                   -> Bool
+tssWindowSizeCheck config =
+  if | DMaybe.isJust (tsswindowsize config)
+     -> if | DL.all (DC.isDigit)
+                    (DText.unpack
+                    (DMaybe.fromJust
+                    (tsswindowsize config)))
+           -> True
+           | otherwise
+           -> False
+     | otherwise
+     -> True
 
-ambiguityCodesCheck :: FRIConfig -> Bool
-ambiguityCodesCheck config = if | DL.all 
-                                  (DL.all (\y -> y `DL.elem` nucleotideambiguitycodes)) 
-                                          (DL.map (DText.unpack)
-                                          (ambiguitycodes config))
-                                -> True
-                                | otherwise
-                                -> False 
+ambiguityCodesCheck :: FRIConfig
+                    -> Bool
+ambiguityCodesCheck config =
+  if | DL.all 
+       (DL.all (\y -> y `DL.elem` nucleotideambiguitycodes)) 
+               (DL.map (DText.unpack)
+               (ambiguitycodes config))
+     -> True
+     | otherwise
+     -> False 
   where
     nucleotideambiguitycodes :: [Char]
     nucleotideambiguitycodes = ['A'
@@ -70,14 +74,24 @@ ambiguityCodesCheck config = if | DL.all
                                ,'N'
                                ,'-']
 
-processConfigurationYaml :: FRIConfig -> IO Bool
+maxNumberofConcurrentThreadsSizeCheck :: FRIConfig
+                                      -> Bool
+maxNumberofConcurrentThreadsSizeCheck config = 
+  if | maxnumberconcthreads config < 1000 
+     -> True
+     | otherwise
+     -> False
+
+processConfigurationYaml :: FRIConfig
+                         -> IO Bool
 processConfigurationYaml config = do
   doesinputfastafileexist  <- SD.doesFileExist (DText.unpack $ fasta config)
   doesinputfastaindexexist <- SD.doesFileExist (DText.unpack $ fai config)
   if | doesinputfastafileexist &&
        doesinputfastaindexexist &&
        tssWindowSizeCheck config &&
-       ambiguityCodesCheck config
+       ambiguityCodesCheck config &&
+       maxNumberofConcurrentThreadsSizeCheck config
      -> return True
      | otherwise
      -> return False  
@@ -102,6 +116,7 @@ runFastaRegionInspector (_,inputfiles) = do
      | otherwise
      -> do --Print out failure message.
            _ <- liftIO $ showPrettyLog LogDebug
+                                       (maxnumberconcthreads decodedinputyaml)
                                        "runFastaRegionInspector"
                                        "Could not sanitize Configuration YAML."
            liftIO $ SX.exitWith (SX.ExitFailure 1)

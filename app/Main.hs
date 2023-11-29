@@ -3,14 +3,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE Strict            #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module Main where
 
-import Logging
+import CmdOpts
 import MacroFont
 import RunFRI
-import CmdOpts
 
 import Data.Aeson.Types
 import Data.List as DL
@@ -31,12 +29,6 @@ friApp = do --Get command line arguments.
             (args,files) <- liftIO $ SE.getArgs >>= compilerOpts
             --See if files is null.
             if | DL.length files /= 1
-               -> do _ <- liftIO $ showPrettyLog LogTrace
-                                                 "friApp"
-                                                 "FRI requires one argument: Configuration YAML file."
-                     liftIO $ SX.exitWith (SX.ExitFailure 1) 
+               -> liftIO $ SX.exitWith (SX.ExitFailure 1) 
                | otherwise
-               -> do _ <- liftIO $ showPrettyLog LogInfo
-                                                 "friApp"
-                                                 "Starting up fasta-region-inspector v0.2.0.0." 
-                     runStructuredConcurrency $ runFastaRegionInspector (args,files)   
+               -> runStructuredConcurrency $ runFastaRegionInspector (args,files)   

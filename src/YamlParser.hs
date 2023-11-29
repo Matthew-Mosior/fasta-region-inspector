@@ -28,6 +28,7 @@ parseFRIConfig v = FRIConfig
   <*> v .:  "Keep_BioMart"
   <*> v .:  "Ignore_Strandedness"
   <*> v .:  "Write_Ambiguity_Codes"
+  <*> v .:  "Max_Number_of_Concurrent_Threads"
 
 instance FromJSON Variant where
   parseJSON (Object v) = parseVariant v

@@ -54,6 +54,7 @@ dependencies:
 - temporary
 - text 
 - time
+- unliftio-pool
 - unordered-containers
 - utf8-string
 - vector 

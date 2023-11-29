@@ -80,6 +80,7 @@ library
     , text
     , time
     , tls
+    , unliftio-pool
     , unordered-containers
     , utf8-string
     , vector
@@ -130,6 +131,7 @@ executable fasta-region-inspector
     , text
     , time
     , tls
+    , unliftio-pool
     , unordered-containers
     , utf8-string
     , vector
@@ -181,6 +183,7 @@ test-suite fasta-region-inspector-test
     , text
     , time
     , tls
+    , unliftio-pool
     , unordered-containers
     , utf8-string
     , vector

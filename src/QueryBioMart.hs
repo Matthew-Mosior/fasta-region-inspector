@@ -49,6 +49,7 @@ runQueryBioMart :: forall {es :: [Effect]}.
 runQueryBioMart config = do
   --Generate BioMart compatible xml.
   _ <- liftIO $ showPrettyLog LogInfo
+                              (maxnumberconcthreads config)
                               "runQueryBioMart"
                               "Generating BioMart compatible XML."
   let biomartxml = TXML.Element "Query" (Map.fromList [ ("virtualSchemaName","default")
@@ -132,6 +133,7 @@ runQueryBioMart config = do
                                 where
                                   statusCodeR = NHTTPT.statusCode DF.. responseStatus
   _ <- liftIO $ showPrettyLog LogInfo
+                              (maxnumberconcthreads config)
                               "runQueryBioMart"
                               "Querying and downloading region data from BioMart via HTTP request."
   biomartrequest <- runReq httpconfig $ do
@@ -141,6 +143,7 @@ runQueryBioMart config = do
                                    bsResponse
                                    mempty
   _ <- liftIO $ showPrettyLog LogInfo
+                              (maxnumberconcthreads config)
                               "runQueryBioMart"
                               "Successfully queried and returned region data from BioMart via HTTP request."
   let returnedbiomartregions = DBC8.unpack $
@@ -168,6 +171,7 @@ runQueryBioMart config = do
   if | keepbiomart config
      -> if | DL.last outputdir == '/'
            -> do _ <- liftIO $ showPrettyLog LogInfo
+                                             (maxnumberconcthreads config)
                                              "runQueryBioMart"
                                              "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "biomartresult.txt")
@@ -175,6 +179,7 @@ runQueryBioMart config = do
                  liftIO $ return processedregiondata
            | otherwise
            -> do _ <- liftIO $ showPrettyLog LogInfo
+                                             (maxnumberconcthreads config)
                                              "runQueryBioMart"
                                              "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "/" ++ "biomartresult.txt")
