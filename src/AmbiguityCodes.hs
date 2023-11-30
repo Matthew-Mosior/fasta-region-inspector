@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE LinearTypes       #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -13,26 +14,27 @@ import Types
 
 import Linear.UtilityLinear
 
-import Codec.Binary.UTF8.String as CBUTF8
-import Control.Parallel.Strategies as CPS
-import Data.Aeson.Types
-import Data.ByteString as DB hiding (append)
-import Data.ByteString.Char8 as DBC hiding (append)
-import Data.ByteString.Search.DFA as DBSDFA
-import Data.Char as DC
-import Data.Either as DE
-import Data.List as DL
-import Data.List.Split as DLS
-import Data.Maybe as DMaybe
-import Data.SBV as DSBV
-import qualified Data.SBV.String as DSBVS
-import Data.SBV.RegExp as DSBVRE
-import Data.Text as DText
-import Data.Traversable as DT
-import Data.Vector.Storable.ByteString as DVSBS
-import Data.Vector.Unboxed as DVU
-import Effectful
-import Effectful.Ki
+import           Codec.Binary.UTF8.String        as CBUTF8
+import           Control.Parallel.Strategies     as CPS
+import           Data.Aeson.Types
+import           Data.ByteString                 as DB hiding (append)
+import           Data.ByteString.Char8           as DBC hiding (append)
+import           Data.ByteString.Search.DFA      as DBSDFA
+import           Data.Char                       as DC
+import           Data.Either                     as DE
+import           Data.List                       as DL
+import           Data.List.Split                 as DLS
+import           Data.Maybe                      as DMaybe
+import           Data.SBV                        as DSBV
+import qualified Data.SBV.String                 as DSBVS
+import           Data.SBV.RegExp                 as DSBVRE
+import           Data.Text                       as DText
+import           Data.Traversable                as DT
+import           Data.Vector.Storable.ByteString as DVSBS
+import           Data.Vector.Unboxed             as DVU
+import           Effectful
+import           Effectful.Ki
+import qualified System.IO.Resource.Linear       as Linear
 
 reverseComplementNucleotide :: DB.ByteString
                             -> DB.ByteString
@@ -286,47 +288,74 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                      _ <- liftIO $ showPrettyLog LogInfo
                                                  (maxnumberconcthreads config)
                                                  "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
-                                                 ( "Reading fasta index file (fai file) for "
+                                                 ( "Reading fasta index file for "
                                                    DL.++
                                                    currentregiongenename
                                                    DL.++
                                                    "."
                                                  )
-                     cfai       <- liftIO $ getFAILineLinear config
-                                                             currentregion
-                                                             (toInteger 0)
-                     _ <- liftIO $ showPrettyLog LogInfo
-                                                 (maxnumberconcthreads config)
-                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
-                                                 ( "Reading in fasta file for "
-                                                   DL.++
-                                                   currentregiongenename
-                                                   DL.++
-                                                   "."
-                                                 )
-                     fastaseq   <- liftIO $ getFASTASequenceLinear config
-                                                                   cfai
-                                                                   (toInteger 0)
-                                                                   DVU.empty
-                     _ <- liftIO $ showPrettyLog LogInfo
-                                                 (maxnumberconcthreads config)
-                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
-                                                 ( "Grabbing all mapped ambiguity string locations for "
-                                                   DL.++
-                                                   currentregiongenename
-                                                   DL.++
-                                                   "."
-                                                 )
-                     substrlocs <- subStrLocations config
-                                                   tsswinsizec
-                                                   (DL.map fst allmappedambiguitystrs)
-                                                   currentregion
-                                                   ((\(FASTASequence seq) -> seq) fastaseq)
-                     return $ ( currentambcode
-                              , DL.map fst allmappedambiguitystrs
-                              , allcurrentregiondata
-                              , substrlocs
-                              )
+                     cfai       <- liftIO $ Linear.run $ getFAILineLinear config
+                                                                          currentregion
+                     case cfai of
+                       Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
+                                                                 (maxnumberconcthreads config)
+                                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                 ( "Could not retrieve required information from fasta index file for "
+                                                                   DL.++
+                                                                   currentregiongenename
+                                                                   DL.++
+                                                                   "."
+                                                                 )
+                                     return $ ( currentambcode
+                                              , DL.map fst allmappedambiguitystrs
+                                              , allcurrentregiondata
+                                              , []
+                                              )
+                       Just cfaif -> do _ <- liftIO $ showPrettyLog LogInfo
+                                                                    (maxnumberconcthreads config)
+                                                                    "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                    ( "Reading in fasta file for "
+                                                                      DL.++
+                                                                      currentregiongenename
+                                                                      DL.++
+                                                                      "."
+                                                                    )
+                                        fastaseq   <- liftIO $ Linear.run $ getFASTASequenceLinear config
+                                                                                                   cfaif
+                                        case fastaseq of
+                                          Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
+                                                                                    (maxnumberconcthreads config)
+                                                                                    "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                                    ( "Could not retrieve required information from fasta file for "
+                                                                                      DL.++
+                                                                                      currentregiongenename
+                                                                                      DL.++
+                                                                                      "."
+                                                                                    )
+                                                        return $ ( currentambcode
+                                                                 , DL.map fst allmappedambiguitystrs
+                                                                 , allcurrentregiondata
+                                                                 , []
+                                                                 )
+                                          Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
+                                                                                           (maxnumberconcthreads config)
+                                                                                           "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                                           ( "Grabbing all mapped ambiguity string locations for "
+                                                                                             DL.++
+                                                                                             currentregiongenename
+                                                                                             DL.++
+                                                                                             "."
+                                                                                           )
+                                                               substrlocs <- subStrLocations config
+                                                                                             tsswinsizec
+                                                                                             (DL.map fst allmappedambiguitystrs)
+                                                                                             currentregion
+                                                                                             ((\(FASTASequence seq) -> seq) fastaseqf)
+                                                               return $ ( currentambcode
+                                                                        , DL.map fst allmappedambiguitystrs
+                                                                        , allcurrentregiondata
+                                                                        , substrlocs
+                                                                        )
                  )
     DT.forM allregioncheckdata $ \currentregioncheckdata ->
       atomically $ await currentregioncheckdata
@@ -384,41 +413,68 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                             DL.++
                                                             "."
                                                           )
-                              cfai       <- liftIO $ getFAILineLinear config
-                                                                      currentregion
-                                                                      (toInteger 0)
-                              _ <- liftIO $ showPrettyLog LogInfo
-                                                          (maxnumberconcthreads config)
-                                                          "ambiguityCodesWithinRegionCheckSmall"
-                                                          ( "Reading in fasta file for "
-                                                            DL.++
-                                                            currentregiongenename
-                                                            DL.++
-                                                            "."
-                                                          )
-                              fastaseq   <- liftIO $ getFASTASequenceLinear config
-                                                                            cfai
-                                                                            (toInteger 0)
-                                                                            DVU.empty
-                              _ <- liftIO $ showPrettyLog LogInfo
-                                                          (maxnumberconcthreads config)
-                                                          "ambiguityCodesWithinRegionCheckSmall"
-                                                          ( "Grabbing all mapped ambiguity string locations for "
-                                                            DL.++
-                                                            currentregiongenename
-                                                            DL.++
-                                                            "."
-                                                          )
-                              substrlocs <- subStrLocations config
-                                                            tsswinsizec
-                                                            (DL.map fst allmappedambiguitystrs)
-                                                            currentregion
-                                                            ((\(FASTASequence seq) -> seq) fastaseq)
-                              return $ ( currentambcode
-                                       , DL.map fst allmappedambiguitystrs
-                                       , allcurrentregiondata
-                                       , substrlocs
-                                       )
+                              cfai       <- liftIO $ Linear.run $ getFAILineLinear config
+                                                                                   currentregion
+                              case cfai of
+                                Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
+                                                                          (maxnumberconcthreads config)
+                                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                                          ( "Could not retrieve required information from fasta index file for "
+                                                                            DL.++
+                                                                            currentregiongenename
+                                                                            DL.++
+                                                                            "."
+                                                                          )
+                                              return $ ( currentambcode
+                                                       , DL.map fst allmappedambiguitystrs
+                                                       , allcurrentregiondata
+                                                       , []
+                                                       )
+                                Just cfaif -> do _ <- liftIO $ showPrettyLog LogInfo
+                                                                             (maxnumberconcthreads config)
+                                                                             "ambiguityCodesWithinRegionCheckSmall"
+                                                                             ( "Reading in fasta file for "
+                                                                               DL.++
+                                                                               currentregiongenename
+                                                                               DL.++
+                                                                               "."
+                                                                             )
+                                                 fastaseq   <- liftIO $ Linear.run $ getFASTASequenceLinear config
+                                                                                                            cfaif
+                                                 case fastaseq of
+                                                   Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
+                                                                                             (maxnumberconcthreads config)
+                                                                                             "ambiguityCodesWithinRegionCheckSmall"
+                                                                                             ( "Could not retrieve required information from fasta file for "
+                                                                                               DL.++
+                                                                                               currentregiongenename
+                                                                                               DL.++
+                                                                                               "."
+                                                                                             )
+                                                                 return $ ( currentambcode
+                                                                          , DL.map fst allmappedambiguitystrs
+                                                                          , allcurrentregiondata
+                                                                          , []
+                                                                          )
+                                                   Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
+                                                                                                    (maxnumberconcthreads config)
+                                                                                                    "ambiguityCodesWithinRegionCheckSmall"
+                                                                                                    ( "Grabbing all mapped ambiguity string locations for "
+                                                                                                      DL.++
+                                                                                                      currentregiongenename
+                                                                                                      DL.++
+                                                                                                      "."
+                                                                                                    )
+                                                                        substrlocs <- subStrLocations config
+                                                                                                      tsswinsizec
+                                                                                                      (DL.map fst allmappedambiguitystrs)
+                                                                                                      currentregion
+                                                                                                      ((\(FASTASequence seq) -> seq) fastaseqf)
+                                                                        return $ ( currentambcode
+                                                                                 , DL.map fst allmappedambiguitystrs
+                                                                                 , allcurrentregiondata
+                                                                                 , substrlocs
+                                                                                 )
                         | otherwise
                         -> do --Current ambiguity codes and mapped strings
                               --are not correct for region strand

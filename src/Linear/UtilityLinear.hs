@@ -1,6 +1,7 @@
 {-# LANGUAGE LinearTypes       #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE QualifiedDo       #-}
 
 module Linear.UtilityLinear where
@@ -20,118 +21,185 @@ import           GHC.Integer
 import           Prelude.Linear
 import qualified Prelude
 
+getFAILineLinearS :: FRIConfig
+                  -> BioMartRegion
+                  -> Integer
+                  -> Linear.Handle %1
+                  -> Linear.RIO (Ur (Maybe FAI))
+getFAILineLinearS config
+                  currentregion
+                  seqcounter
+                  fih =
+  loop config
+       currentregion
+       seqcounter
+       fih
+    where
+      loop :: FRIConfig
+           -> BioMartRegion
+           -> Integer
+           -> Linear.Handle %1
+           -> Linear.RIO (Ur (Maybe FAI))
+      loop config
+           currentregion
+           seqcounter
+           fih = Control.do
+        (Ur isEOF,handle') <- Linear.hIsEOF fih
+        case isEOF of
+          True  -> Control.do () <- Linear.hClose handle'
+                              Control.return $ Ur Nothing
+          False -> Control.do handle''            <- Linear.hSeek handle'
+                                                                  Linear.AbsoluteSeek
+                                                                  seqcounter
+                              (Ur cfai,handle''') <- Linear.hGetLine handle''
+                              case (DLL.takeWhile (/= '\t') (unpack cfai)) == (unpack $ biomartregion_sequencedescription currentregion) of
+                                True  -> Control.do () <- Linear.hClose handle'''
+                                                    let cfaif = splitOn "\t"
+                                                                        cfai
+                                                    Control.return $ Ur $ Just FAI { fai_name      = cfaif Prelude.!! 0
+                                                                                   , fai_length    = toInteger $
+                                                                                                     read      $
+                                                                                                     unpack    $
+                                                                                                     cfaif Prelude.!! 1
+                                                                                   , fai_offset    = toInteger $
+                                                                                                     read      $
+                                                                                                     unpack    $
+                                                                                                     cfaif Prelude.!! 2
+                                                                                   , fai_linebases = toInteger $
+                                                                                                     read      $
+                                                                                                     unpack    $
+                                                                                                     cfaif Prelude.!! 3
+                                                                                   , fai_linewidth = toInteger $
+                                                                                                     read      $
+                                                                                                     unpack    $
+                                                                                                     cfaif Prelude.!! 4
+                                                                                   }
+                                False -> Control.do let newcharsize = ( numBytesUtf8String $
+                                                                        unpack cfai
+                                                                      )
+                                                                      + 1
+                                                    let newoffset = plusInteger seqcounter
+                                                                                (toInteger newcharsize)
+                                                    loop config
+                                                         currentregion
+                                                         newoffset
+                                                         handle'''
+
 getFAILineLinear :: FRIConfig
                  -> BioMartRegion
-                 -> Integer
-                 -> IO FAI
+                 -> Linear.RIO (Ur (Maybe FAI))
 getFAILineLinear config
-                 currentregion
-                 seqcounter = do
-  cfai <- Linear.run $ Control.do
-    fih             <- Linear.openFile (unpack $ fai config)
-                                       Linear.ReadMode
-    handle'         <- Linear.hSeek fih
-                                    Linear.AbsoluteSeek
-                                    seqcounter
-    (cfai,handle'') <- Linear.hGetLine handle'
-    ()              <- Linear.hClose handle''
-    Control.return cfai
-  case (DLL.takeWhile (/= ' ') (unpack cfai)) == (unpack $ biomartregion_sequencedescription currentregion) of
-    True  -> do let cfaif = splitOn "\t"
-                                    cfai
-                Prelude.return $ FAI { fai_name      = cfaif Prelude.!! 0
-                                     , fai_length    = toInteger $
-                                                       read      $
-                                                       unpack    $
-                                                       cfaif Prelude.!! 1
-                                     , fai_offset    = toInteger $
-                                                       read      $
-                                                       unpack    $
-                                                       cfaif Prelude.!! 2
-                                     , fai_linebases = toInteger $
-                                                       read      $
-                                                       unpack    $
-                                                       cfaif Prelude.!! 3
-                                     , fai_linewidth = toInteger $
-                                                       read      $
-                                                       unpack    $
-                                                       cfaif Prelude.!! 4
-                                     }
-    False -> do let newcharsize = numBytesUtf8String $
-                                  unpack cfai
-                getFAILineLinear config
-                                 currentregion
-                                 (plusInteger seqcounter
-                                              (toInteger newcharsize)
-                                 )
+                 currentregion = Control.do
+  handle <- Linear.openBinaryFile (unpack $ fai config)
+                                  Linear.ReadMode
+  getFAILineLinearS config
+                    currentregion
+                    0
+                    handle
+
+getFASTASequenceLinearS :: FRIConfig
+                        -> FAI
+                        -> Integer
+                        -> Vector Char
+                        -> Linear.Handle %1
+                        -> Linear.RIO (Ur (Maybe FASTASequence))
+getFASTASequenceLinearS config
+                        cfai
+                        seqcounter
+                        fastaseq 
+                        ffh =
+  loop config
+       cfai
+       seqcounter
+       fastaseq
+       ffh
+    where
+      loop :: FRIConfig
+           -> FAI
+           -> Integer
+           -> Vector Char
+           -> Linear.Handle %1
+           -> Linear.RIO (Ur (Maybe FASTASequence))
+      loop config
+           cfai
+           seqcounter
+           fastaseq
+           ffh = Control.do
+        (Ur isEOF,handle') <- Linear.hIsEOF ffh
+        case isEOF of
+          True  -> Control.do () <- Linear.hClose handle'
+                              Control.return $ Ur Nothing
+          False -> Control.do let newoffset             = plusInteger (fai_offset cfai)
+                                                                      seqcounter
+                              handle''                  <- Linear.hSeek handle'
+                                                                        Linear.AbsoluteSeek
+                                                                        newoffset
+                              (Ur newseqline,handle''') <- Linear.hGetLine handle''
+                              case seqcounter DO.> (fai_length cfai) of
+                                False -> case ((toInteger (DVU.length $ fastaseq DVU.++ (DVU.fromList $ unpack newseqline))) DO.> (fai_length cfai)) of
+                                           True  -> Control.do let newseqlinef  = DL.filter (\x -> x `DL.elem` nucleicacidcodes) $
+                                                                                  unpack newseqline
+                                                               let newseqlineff = DL.take ( (DVU.length $ fastaseq DVU.++ (DVU.fromList $ unpack newseqline))
+                                                                                             -
+                                                                                            (fromIntegral $ fai_length cfai)
+                                                                                          )
+                                                                                  newseqlinef
+                                                               let newlinesize  = (numBytesUtf8String newseqlineff)
+                                                                                  + 1
+                                                               loop config
+                                                                    cfai
+                                                                    ( plusInteger seqcounter
+                                                                                  (toInteger newlinesize)
+                                                                    )
+                                                                    ( fastaseq
+                                                                      DVU.++
+                                                                      (DVU.fromList newseqlinef)
+                                                                    )
+                                                                    handle'''
+                                           False -> Control.do let newseqlinef  = DL.filter (\x -> x `DL.elem` nucleicacidcodes) $
+                                                                                  unpack newseqline
+                                                               let newlinesize  = (numBytesUtf8String newseqlinef)
+                                                                                  + 1
+                                                               loop config
+                                                                    cfai
+                                                                    ( plusInteger seqcounter
+                                                                                  (toInteger newlinesize)
+                                                                    )
+                                                                    ( fastaseq
+                                                                      DVU.++
+                                                                      (DVU.fromList newseqlinef)
+                                                                    )
+                                                                    handle'''
+                                True  -> Control.do () <- Linear.hClose handle'''
+                                                    Control.return $ Ur $ Just $ FASTASequence fastaseq
+        where
+          nucleicacidcodes = [ 'A'
+                             , 'T'
+                             , 'G'
+                             , 'C'
+                             , 'N'
+                             , 'U'
+                             , 'R'
+                             , 'Y'
+                             , 'K'
+                             , 'M'
+                             , 'S'
+                             , 'W'
+                             , 'B'
+                             , 'D'
+                             , 'H'
+                             , 'V'
+                             ]
 
 getFASTASequenceLinear :: FRIConfig
                        -> FAI
-                       -> Integer
-                       -> Vector Char
-                       -> IO FASTASequence
+                       -> Linear.RIO (Ur (Maybe FASTASequence))
 getFASTASequenceLinear config
-                       cfai
-                       seqcounter
-                       fastaseq =
-  case seqcounter DO.> (fai_length cfai) of
-    False -> do newseqline <- Linear.run $ Control.do
-                                ffh           <- Linear.openFile (unpack $ fasta config)
-                                                                 Linear.ReadMode
-                                handle'       <- Linear.hSeek ffh
-                                                              Linear.AbsoluteSeek
-                                                              (plusInteger (fai_offset cfai)
-                                                                           seqcounter
-                                                              )
-                                (nl,handle'') <- Linear.hGetLine handle'
-                                ()            <- Linear.hClose handle''
-                                Control.return nl
-                case ((toInteger (DVU.length $ fastaseq DVU.++ (DVU.fromList $ unpack newseqline))) DO.> (fai_length cfai)) of
-                  True  -> do let newseqlinef  = DL.filter (\x -> x `DL.elem` nucleicacidcodes) $
-                                                 unpack newseqline
-                              let newseqlineff = DL.take ( (DVU.length $ fastaseq DVU.++ (DVU.fromList $ unpack newseqline))
-                                                            -
-                                                           (fromIntegral $ fai_length cfai)
-                                                         )
-                                                 newseqlinef
-                              let newlinesize  = numBytesUtf8String newseqlineff
-                              getFASTASequenceLinear config
-                                                     cfai
-                                                     ( plusInteger seqcounter
-                                                                   (toInteger newlinesize)
-                                                     )
-                                                     ( fastaseq
-                                                       DVU.++
-                                                       (DVU.fromList newseqlinef)
-                                                     )
-                  False -> do let newseqlinef  = DL.filter (\x -> x `DL.elem` nucleicacidcodes) $
-                                                 unpack newseqline
-                              let newlinesize  = numBytesUtf8String newseqlinef
-                              getFASTASequenceLinear config
-                                                     cfai
-                                                     ( plusInteger seqcounter
-                                                                   (toInteger newlinesize)
-                                                     )
-                                                     ( fastaseq
-                                                       DVU.++
-                                                       (DVU.fromList newseqlinef)
-                                                     ) 
-    True  -> Prelude.return $ FASTASequence fastaseq
-  where
-    nucleicacidcodes = [ 'A'
-                       , 'T'
-                       , 'G'
-                       , 'C'
-                       , 'N'
-                       , 'U'
-                       , 'R'
-                       , 'Y'
-                       , 'K'
-                       , 'M'
-                       , 'S'
-                       , 'W'
-                       , 'B'
-                       , 'D'
-                       , 'H'
-                       , 'V'
-                       ]
+                       cfai = Control.do
+  handle <- Linear.openBinaryFile (unpack $ fasta config)
+                                  Linear.ReadMode
+  getFASTASequenceLinearS config
+                          cfai
+                          0
+                          DVU.empty
+                          handle
