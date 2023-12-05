@@ -57,7 +57,6 @@ library
     , directory
     , effectful
     , effectful-core
-    , elynx-seq
     , ghc-prof
     , http-client
     , http-client-tls
@@ -107,7 +106,6 @@ executable fasta-region-inspector
     , directory
     , effectful
     , effectful-core
-    , elynx-seq
     , fasta-region-inspector
     , ghc-prof
     , http-client
@@ -159,7 +157,6 @@ test-suite fasta-region-inspector-test
     , directory
     , effectful
     , effectful-core
-    , elynx-seq
     , fasta-region-inspector
     , ghc-prof
     , http-client

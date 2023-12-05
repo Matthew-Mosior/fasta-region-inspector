@@ -43,7 +43,6 @@ dependencies:
 - regex-compat
 - regex-pcre
 - regex-tdfa
-- elynx-seq
 - bytestring
 - req
 - sbv

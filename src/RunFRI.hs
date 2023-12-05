@@ -23,6 +23,7 @@ import Data.Text as DText
 import Data.Yaml as DYaml
 import Effectful
 import Effectful.Ki
+import GHC.Stack                    (callStack,getCallStack,HasCallStack)
 import System.Directory as SD
 import System.Environment as SE
 import System.Exit as SX
@@ -99,11 +100,14 @@ processConfigurationYaml config = do
 runFastaRegionInspector :: forall {es :: [Effect]} {b}.
                            ( StructuredConcurrency :> es
                            , IOE :> es
+                           , HasCallStack
                            )
                         => ([Flag],[FilePath])
                         -> Eff es ()
 runFastaRegionInspector ([],[])        = liftIO $ return ()
 runFastaRegionInspector (_,inputfiles) = do
+  --Get calling function name.
+  let ((callingfunction,_):_) = getCallStack callStack
   --Read in configuration YAML.
   readinputyaml <- liftIO $ DBC.readFile ((\(x:_) -> x) inputfiles)
   --Decode readinputyaml.
@@ -117,6 +121,6 @@ runFastaRegionInspector (_,inputfiles) = do
      -> do --Print out failure message.
            _ <- liftIO $ showPrettyLog LogDebug
                                        (maxnumberconcthreads decodedinputyaml)
-                                       "runFastaRegionInspector"
+                                       callingfunction
                                        "Could not sanitize Configuration YAML."
            liftIO $ SX.exitWith (SX.ExitFailure 1)

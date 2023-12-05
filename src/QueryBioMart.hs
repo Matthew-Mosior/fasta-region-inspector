@@ -11,46 +11,50 @@ module QueryBioMart where
 import Logging 
 import Types
 
-import Control.Monad as CM
-import Control.Monad.IO.Class as CMIOC
-import Control.Exception as CE
-import Control.Retry as CR
-import Data.Aeson.Types
-import Data.ByteString.Char8 as DBC8
-import Data.Function as DF
-import Data.List as DL
-import Data.List.Split as DLS
-import Data.Text as DText
-import Data.Text.Lazy as DTextL
-import qualified Data.Text.Lazy as DTL
-import qualified Data.Text.Lazy.IO as DTLIO
-import qualified Data.Map as Map
-import Data.Time as DTime
-import Effectful 
-import Network.Connection as NC
-import Network.HTTP.Client as NHTTPC
-import Network.HTTP.Client.TLS as NHTTPTLS
-import Network.HTTP.Types as NHTTPT
-import Network.HTTP.Req as NHR
-import Network.TLS as NTLS
-import Network.TLS.Extra.Cipher as NTLSEC
-import System.Console.GetOpt as SCG
-import System.Environment as SE
-import System.Exit as SX
-import System.IO as SIO
-import System.Process as SP
-import Text.XML as TXML
+import           Control.Monad            as CM
+import           Control.Monad.IO.Class   as CMIOC
+import           Control.Exception        as CE
+import           Control.Retry            as CR
+import           Data.Aeson.Types
+import           Data.ByteString.Char8    as DBC8
+import           Data.Function            as DF
+import           Data.List                as DL
+import           Data.List.Split          as DLS
+import           Data.Text                as DText
+import           Data.Text.Lazy           as DTextL
+import qualified Data.Text.Lazy           as DTL
+import qualified Data.Text.Lazy.IO        as DTLIO
+import qualified Data.Map                 as Map
+import           Data.Time                as DTime
+import           Effectful
+import           GHC.Stack                            (callStack,getCallStack,HasCallStack)
+import           Network.Connection       as NC
+import           Network.HTTP.Client      as NHTTPC
+import           Network.HTTP.Client.TLS  as NHTTPTLS
+import           Network.HTTP.Types       as NHTTPT
+import           Network.HTTP.Req         as NHR
+import           Network.TLS              as NTLS
+import           Network.TLS.Extra.Cipher as NTLSEC
+import           System.Console.GetOpt    as SCG
+import           System.Environment       as SE
+import           System.Exit              as SX
+import           System.IO                as SIO
+import           System.Process           as SP
+import           Text.XML                 as TXML
 
 runQueryBioMart :: forall {es :: [Effect]}.
                  ( IOE :> es
+                 , HasCallStack
                  )
                 => FRIConfig
                 -> Eff es [BioMartRegion]
 runQueryBioMart config = do
+  --Get calling function name.
+  let ((callingfunction,_):_) = getCallStack callStack
   --Generate BioMart compatible xml.
   _ <- liftIO $ showPrettyLog LogInfo
                               (maxnumberconcthreads config)
-                              "runQueryBioMart"
+                              callingfunction
                               "Generating BioMart compatible XML."
   let biomartxml = TXML.Element "Query" (Map.fromList [ ("virtualSchemaName","default")
                                                       , ("formatter","CSV")
@@ -134,7 +138,7 @@ runQueryBioMart config = do
                                   statusCodeR = NHTTPT.statusCode DF.. responseStatus
   _ <- liftIO $ showPrettyLog LogInfo
                               (maxnumberconcthreads config)
-                              "runQueryBioMart"
+                              callingfunction
                               "Querying and downloading region data from BioMart via HTTP request."
   biomartrequest <- runReq httpconfig $ do
                       let params = "query" =: ((DTextL.toStrict $ renderText def finalbiomartxml) :: DText.Text)
@@ -144,7 +148,7 @@ runQueryBioMart config = do
                                    mempty
   _ <- liftIO $ showPrettyLog LogInfo
                               (maxnumberconcthreads config)
-                              "runQueryBioMart"
+                              callingfunction
                               "Successfully queried and returned region data from BioMart via HTTP request."
   let returnedbiomartregions = DBC8.unpack $
                                NHR.responseBody biomartrequest 
@@ -172,7 +176,7 @@ runQueryBioMart config = do
      -> if | DL.last outputdir == '/'
            -> do _ <- liftIO $ showPrettyLog LogInfo
                                              (maxnumberconcthreads config)
-                                             "runQueryBioMart"
+                                             callingfunction
                                              "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "biomartresult.txt")
                                              returnedbiomartregions
@@ -180,7 +184,7 @@ runQueryBioMart config = do
            | otherwise
            -> do _ <- liftIO $ showPrettyLog LogInfo
                                              (maxnumberconcthreads config)
-                                             "runQueryBioMart"
+                                             callingfunction
                                              "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "/" ++ "biomartresult.txt")
                                              returnedbiomartregions

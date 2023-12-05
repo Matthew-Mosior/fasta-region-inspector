@@ -16,11 +16,9 @@ import           Data.Text           as DText
 import           Data.Vector.Unboxed as DVU
 import           Effectful
 import           Effectful.Ki
---import           Effectful.Log
 
 regionsLinear :: forall {es :: [Effect]}.
                  ( StructuredConcurrency :> es
-                 --, Log :> es
                  , IOE :> es
                  )
               => Maybe Text

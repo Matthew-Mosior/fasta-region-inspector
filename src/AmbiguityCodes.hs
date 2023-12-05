@@ -17,7 +17,7 @@ import Linear.UtilityLinear
 import           Codec.Binary.UTF8.String        as CBUTF8
 import           Control.Parallel.Strategies     as CPS
 import           Data.Aeson.Types
-import           Data.ByteString                 as DB hiding (append)
+import           Data.ByteString                 as DB hiding  (append)
 import           Data.ByteString.Char8           as DBC hiding (append)
 import           Data.ByteString.Search.DFA      as DBSDFA
 import           Data.Char                       as DC
@@ -31,9 +31,9 @@ import           Data.SBV.RegExp                 as DSBVRE
 import           Data.Text                       as DText
 import           Data.Traversable                as DT
 import           Data.Vector.Storable.ByteString as DVSBS
-import           Data.Vector.Unboxed             as DVU
 import           Effectful
 import           Effectful.Ki
+import           GHC.Stack                                     (callStack,getCallStack,HasCallStack)
 import qualified System.IO.Resource.Linear       as Linear
 
 reverseComplementNucleotide :: DB.ByteString
@@ -52,130 +52,70 @@ reverseComplementNucleotide currentsequence =
                              , ('C','G')
                              ]
 
-grabRegionSequence :: Vector Char
-                   -> BioMartRegion
-                   -> Int
-                   -> DB.ByteString
-grabRegionSequence currentsequence
-                   currentregion
-                   currenttsswinsize =
-  if | (currentregionstrand == "-1")
-     -> DB.pack
-        (CBUTF8.encode
-        (DVU.toList
-        (DVU.take currenttsswinsize (DVU.drop ((read currentregiontss) - (currenttsswinsize - 1))
-                                    currentsequence))))
-     | otherwise
-     -> DB.pack
-        (CBUTF8.encode
-        (DVU.toList
-        (DVU.take currenttsswinsize (DVU.drop ((read currentregiontss) - 1)
-                                   currentsequence))))
-    where
-      currentregiontss    = DText.unpack (biomartregion_tss currentregion)
-      currentregionstrand = DText.unpack (biomartregion_strand currentregion)
-
 subStrLocationsSmallForward :: forall {es :: [Effect]} {b}.
                                ( IOE :> es
+                               , HasCallStack
                                )
                             => FRIConfig
-                            -> Maybe Text
                             -> [String]
-                            -> BioMartRegion
-                            -> Vector Char
+                            -> ByteString
                             -> Eff es [[Int]]
-subStrLocationsSmallForward _ _ [] _ _ = return []
+subStrLocationsSmallForward _ [] _ = return []
 subStrLocationsSmallForward config
-                            tsswinsizec
                             (currentmappedambstr:restofmappedambstrs)
-                            currentregion
                             finalfastafile = do
+  let ((callingfunction,_):_) = getCallStack callStack
   _ <- liftIO $ showPrettyLog LogInfo
                               (maxnumberconcthreads config)
-                              "subStrLocationsSmallForward"
+                              callingfunction
                               ( "Processing mapped ambiguity code "
                                 DL.++
                                 currentmappedambstr
                                 DL.++
                                 "."
                               )
-  if | DMaybe.isJust tsswinsizec
-     -> do res <- subStrLocationsSmallForward config
-                                              tsswinsizec
-                                              restofmappedambstrs
-                                              currentregion
-                                              finalfastafile
-           return $ (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                    (grabRegionSequence
-                                    finalfastafile
-                                    currentregion
-                                    (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int))) : res
-     | otherwise
-     -> do res <- subStrLocationsSmallForward config
-                                              tsswinsizec
-                                              restofmappedambstrs
-                                              currentregion
-                                              finalfastafile
-           return $ (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                    (grabRegionSequence
-                                    finalfastafile
-                                    currentregion
-                                    2000)) : res
+  res <- subStrLocationsSmallForward config
+                                     restofmappedambstrs
+                                     finalfastafile
+  return $ ( DBSDFA.indices (DBC.pack currentmappedambstr)
+                            finalfastafile
+           ) : res
 
 subStrLocationsSmallReverse :: forall {es :: [Effect]} {b}.
                                ( IOE :> es
+                               , HasCallStack
                                )
                             => FRIConfig
-                            -> Maybe Text
                             -> [String]
-                            -> BioMartRegion
-                            -> Vector Char
+                            -> ByteString
                             -> Eff es [[Int]]
-subStrLocationsSmallReverse _ _ [] _ _ = return []
+subStrLocationsSmallReverse _ [] _ = return []
 subStrLocationsSmallReverse config
-                            tsswinsizec
                             (currentmappedambstr:restofmappedambstrs)
-                            currentregion
                             finalfastafile = do
+  let ((callingfunction,_):_) = getCallStack callStack
   _ <- liftIO $ showPrettyLog LogInfo
                               (maxnumberconcthreads config)
-                              "subStrLocationsSmallReverse"
+                              callingfunction
                               ( "Processing mapped ambiguity code "
                                 DL.++
                                 currentmappedambstr
                                 DL.++
                                 "."
                               )
-  if | DMaybe.isJust tsswinsizec
-     -> do res <- subStrLocationsSmallReverse config
-                                              tsswinsizec
-                                              restofmappedambstrs
-                                              currentregion
-                                              finalfastafile
-           return $ (DL.map (\a -> (DBC.length
-                                   ((grabRegionSequence finalfastafile
-                                                        currentregion
-                                                        (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int)))) - a - 1)
-                                   (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                   (reverseComplementNucleotide
-                                   (grabRegionSequence finalfastafile
-                                                       currentregion
-                                                       (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int))))) : res
-     | otherwise
-     -> do res <- subStrLocationsSmallReverse config
-                                              tsswinsizec
-                                              restofmappedambstrs
-                                              currentregion
-                                              finalfastafile
-           return $ (DL.map (\a -> (DBC.length
-                                   ((grabRegionSequence finalfastafile
-                                                        currentregion
-                                                        2000))) - a - 1)
-                                   (DBSDFA.indices (DBC.pack currentmappedambstr)
-                                   (reverseComplementNucleotide
-                                   (grabRegionSequence finalfastafile
-                                                       currentregion
-                                                       2000)))) : res
+  res <- subStrLocationsSmallReverse config
+                                     restofmappedambstrs
+                                     finalfastafile
+  return $ ( DL.map (\a -> ( DBC.length
+                             finalfastafile
+                           ) - a -- - 1
+                    )
+                    ( DBSDFA.indices (DBC.pack currentmappedambstr)
+                      ( reverseComplementNucleotide
+                        finalfastafile
+                      )
+                    )
+           ) : res
 
 subStrLocations :: forall {es :: [Effect]} {b}.
                    ( IOE :> es
@@ -184,7 +124,7 @@ subStrLocations :: forall {es :: [Effect]} {b}.
                 -> Maybe Text
                 -> [String]
                 -> BioMartRegion
-                -> Vector Char
+                -> ByteString
                 -> Eff es [[Int]]
 subStrLocations _ _ [] _ _ = return []
 subStrLocations config
@@ -195,9 +135,7 @@ subStrLocations config
   if | DMaybe.isJust tsswinsizec
      -> if | currentregionstrand == "-1"
            -> do reversesubstrlocs <- subStrLocationsSmallReverse config
-                                                                  tsswinsizec
-                                                                  allmappedambiguitystrs
-                                                                  currentregion
+                                                                  allmappedambiguitystrs 
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((((read currentregiontss) - (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int)) + i) + 2)))
@@ -205,9 +143,7 @@ subStrLocations config
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
            -> do forwardsubstrlocs <- subStrLocationsSmallForward config
-                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
-                                                                  currentregion
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((read currentregiontss) + i)))
@@ -216,9 +152,7 @@ subStrLocations config
      | otherwise
      -> if | currentregionstrand == "-1"
            -> do reversesubstrlocs <- subStrLocationsSmallReverse config
-                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
-                                                                  currentregion
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((((read currentregiontss) - 2000) + i) + 2)))
@@ -226,9 +160,7 @@ subStrLocations config
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
            -> do forwardsubstrlocs <- subStrLocationsSmallForward config
-                                                                  tsswinsizec
                                                                   allmappedambiguitystrs
-                                                                  currentregion
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
                             ((read currentregiontss) + i)))
@@ -241,6 +173,7 @@ subStrLocations config
 ambiguityCodesWithinRegionCheckIgnoreStrandSmall :: forall {es :: [Effect]} {b}.
                                                     ( StructuredConcurrency :> es
                                                     , IOE :> es
+                                                    , HasCallStack
                                                     )
                                                  => Maybe Text
                                                  -> FRIConfig
@@ -258,7 +191,8 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                  config
                                                  currentambtuple@(currentambcode,currentstrand)
                                                  allmappedambiguitystrs
-                                                 allregions =
+                                                 allregions = do
+  let ((callingfunction,_):_) = getCallStack callStack
   scoped $ \scope -> do
     allregioncheckdata <- DT.forM allregions $ \currentregion -> do
       fork scope (do let currentregionchr      = DText.unpack (biomartregion_sequencedescription currentregion)
@@ -272,7 +206,7 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                  ]
                      _ <- liftIO $ showPrettyLog LogInfo
                                                  (maxnumberconcthreads config)
-                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                 callingfunction
                                                  ( "Processing region data associated with gene "
                                                    DL.++
                                                    currentregiongenename
@@ -287,7 +221,7 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                      --and recurse.
                      _ <- liftIO $ showPrettyLog LogInfo
                                                  (maxnumberconcthreads config)
-                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                 callingfunction
                                                  ( "Reading fasta index file for "
                                                    DL.++
                                                    currentregiongenename
@@ -299,7 +233,7 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                      case cfai of
                        Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
                                                                  (maxnumberconcthreads config)
-                                                                 "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                 callingfunction
                                                                  ( "Could not retrieve required information from fasta index file for "
                                                                    DL.++
                                                                    currentregiongenename
@@ -313,7 +247,7 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                               )
                        Just cfaif -> do _ <- liftIO $ showPrettyLog LogInfo
                                                                     (maxnumberconcthreads config)
-                                                                    "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                    callingfunction
                                                                     ( "Reading in fasta file for "
                                                                       DL.++
                                                                       currentregiongenename
@@ -321,11 +255,12 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                                       "."
                                                                     )
                                         fastaseq   <- liftIO $ Linear.run $ getFASTASequenceLinear config
+                                                                                                   currentregion
                                                                                                    cfaif
                                         case fastaseq of
                                           Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
                                                                                     (maxnumberconcthreads config)
-                                                                                    "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                                    callingfunction
                                                                                     ( "Could not retrieve required information from fasta file for "
                                                                                       DL.++
                                                                                       currentregiongenename
@@ -339,7 +274,7 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                                  )
                                           Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
                                                                                            (maxnumberconcthreads config)
-                                                                                           "ambiguityCodesWithinRegionCheckIgnoreStrandSmall"
+                                                                                           callingfunction
                                                                                            ( "Grabbing all mapped ambiguity string locations for "
                                                                                              DL.++
                                                                                              currentregiongenename
@@ -363,6 +298,7 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
 ambiguityCodesWithinRegionCheckSmall :: forall {es :: [Effect]} {b}.
                                         ( StructuredConcurrency :> es
                                         , IOE :> es
+                                        , HasCallStack
                                         )
                                      => Maybe Text
                                      -> FRIConfig
@@ -380,7 +316,8 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                      config
                                      currentambtuple@(currentambcode,currentstrand)
                                      allmappedambiguitystrs
-                                     allregions =
+                                     allregions = do
+  let ((callingfunction,_):_) = getCallStack callStack
   scoped $ \scope -> do
     allregioncheckdata <- DT.forM allregions $ \currentregion -> do
       fork scope (do let currentregionchr      = DText.unpack (biomartregion_sequencedescription currentregion)
@@ -394,7 +331,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                  ]
                      _ <- liftIO $ showPrettyLog LogInfo
                                                  (maxnumberconcthreads config)
-                                                 "ambiguityCodesWithinRegionCheckSmall"
+                                                 callingfunction
                                                  ( "Processing region data associated with gene "
                                                    DL.++
                                                    currentregiongenename
@@ -406,7 +343,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                               --and recurse.
                               _ <- liftIO $ showPrettyLog LogInfo
                                                           (maxnumberconcthreads config)
-                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                          callingfunction
                                                           ( "Reading fasta index file for "
                                                             DL.++
                                                             currentregiongenename
@@ -418,7 +355,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                               case cfai of
                                 Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
                                                                           (maxnumberconcthreads config)
-                                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                                          callingfunction
                                                                           ( "Could not retrieve required information from fasta index file for "
                                                                             DL.++
                                                                             currentregiongenename
@@ -432,7 +369,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                        )
                                 Just cfaif -> do _ <- liftIO $ showPrettyLog LogInfo
                                                                              (maxnumberconcthreads config)
-                                                                             "ambiguityCodesWithinRegionCheckSmall"
+                                                                             callingfunction
                                                                              ( "Reading in fasta file for "
                                                                                DL.++
                                                                                currentregiongenename
@@ -440,11 +377,12 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                                                "."
                                                                              )
                                                  fastaseq   <- liftIO $ Linear.run $ getFASTASequenceLinear config
+                                                                                                            currentregion
                                                                                                             cfaif
                                                  case fastaseq of
                                                    Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
                                                                                              (maxnumberconcthreads config)
-                                                                                             "ambiguityCodesWithinRegionCheckSmall"
+                                                                                             callingfunction
                                                                                              ( "Could not retrieve required information from fasta file for "
                                                                                                DL.++
                                                                                                currentregiongenename
@@ -458,7 +396,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                                           )
                                                    Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
                                                                                                     (maxnumberconcthreads config)
-                                                                                                    "ambiguityCodesWithinRegionCheckSmall"
+                                                                                                    callingfunction
                                                                                                     ( "Grabbing all mapped ambiguity string locations for "
                                                                                                       DL.++
                                                                                                       currentregiongenename
@@ -481,7 +419,7 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                               --(i.e. "-1" != "1" or "1" != "-1").
                               _ <- liftIO $ showPrettyLog LogInfo
                                                           (maxnumberconcthreads config)
-                                                          "ambiguityCodesWithinRegionCheckSmall"
+                                                          callingfunction
                                                           ( "Could not process region data associated with current ambiguity code "
                                                             DL.++
                                                             currentambcode
@@ -691,11 +629,12 @@ ambiguityCodesReverseComplement config =
 tupleConverterAmbCodesWithinTSS :: (String,[String],[String],[[Int]])
                                 -> ([[String]],[[String]],[[String]],[[Int]])
 tupleConverterAmbCodesWithinTSS (a,b,c,d) =
-  ((DL.map (\x -> [x])
-   (DL.replicate (DL.length b) a))
-  ,(DL.map (\x -> [x]) b)
-  ,(DL.replicate (DL.length b) c)
-  ,d)
+  ( (DL.map (\x -> [x])
+    (DL.replicate (DL.length b) a))
+  , (DL.map (\x -> [x]) b)
+  , (DL.replicate (DL.length b) c)
+  , d
+  )
 
 tupleToListAmbCodesWithinTSS :: ([[String]],[[String]],[[String]],[[Int]])
                              -> [[String]]
