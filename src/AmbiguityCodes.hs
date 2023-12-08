@@ -30,7 +30,6 @@ import qualified Data.SBV.String                 as DSBVS
 import           Data.SBV.RegExp                 as DSBVRE
 import           Data.Text                       as DText
 import           Data.Traversable                as DT
-import           Data.Vector.Storable.ByteString as DVSBS
 import           Effectful
 import           Effectful.Ki
 import           GHC.Stack                                     (callStack,getCallStack,HasCallStack)
@@ -108,7 +107,7 @@ subStrLocationsSmallReverse config
                                      finalfastafile
   return $ ( DL.map (\a -> ( DBC.length
                              finalfastafile
-                           ) - a -- - 1
+                           ) - a - 1
                     )
                     ( DBSDFA.indices (DBC.pack currentmappedambstr)
                       ( reverseComplementNucleotide
@@ -302,8 +301,8 @@ ambiguityCodesWithinRegionCheckSmall :: forall {es :: [Effect]} {b}.
                                         )
                                      => Maybe Text
                                      -> FRIConfig
-                                     -> ([Char], [Char])
-                                     -> [(String, b)]
+                                     -> ([Char],[Char])
+                                     -> [(String,b)]
                                      -> [BioMartRegion]
                                      -> Eff es [([Char], [String], [String], [[Int]])]
 ambiguityCodesWithinRegionCheckSmall _ _ ([],[])       []    _  = return []

@@ -114,8 +114,8 @@ getFASTASequenceLinearReverse config
           True  -> Control.do () <- Linear.hClose handle'
                               Control.return $ Ur Nothing
           False -> Control.do (Ur newseqline,handle'') <- Linear.hGetLine handle'
-                              let newseqlinef = DB.append (DB.pack $ unpack newseqline)
-                                                          fastaseq
+                              let newseqlinef = DB.append fastaseq
+                                                          (DB.pack $ unpack newseqline)
                               case (tsswindowsize config) of
                                 Just size -> case (DB.length newseqlinef) DO.> (read $ unpack size) of
                                                True  -> Control.do let newseqlineff  = DB.dropEnd ( (DB.length newseqlinef)
@@ -220,20 +220,21 @@ getFASTASequenceLinear config
                    handle' <- case (tsswindowsize config) of
                                 Just size -> Linear.hSeek handle
                                                           Linear.AbsoluteSeek
-                                                          ( minusInteger ( plusInteger (fai_offset cfai)
-                                                                                       ( plusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
-                                                                                                     1
+                                                          ( plusInteger ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                       ( minusInteger (read $ unpack size)
+                                                                                                      1
                                                                                        )
-                                                                         )
-                                                                         (read $ unpack size)
+                                                                        )
+                                                                        (fai_offset cfai)
                                                           )
                                 Nothing   -> Linear.hSeek handle
                                                           Linear.AbsoluteSeek
-                                                          ( minusInteger ( plusInteger (fai_offset cfai)
-                                                                                       ( plusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
-                                                                                                     1
+                                                          ( plusInteger ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                       ( minusInteger 2000 
+                                                                                                      1
                                                                                        )
-                                                                         ) 2000
+                                                                         )
+                                                                         (fai_offset cfai)
                                                           )
                    getFASTASequenceLinearReverse config
                                                  currentregion
@@ -245,9 +246,10 @@ getFASTASequenceLinear config
                                               Linear.ReadMode
                    handle' <- Linear.hSeek handle
                                             Linear.AbsoluteSeek
-                                            ( plusInteger (fai_offset cfai) ( plusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
-                                                                                          1
-                                                                            )
+                                            ( plusInteger ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                         1
+                                                          )
+                                                          (fai_offset cfai)
                                             )
                    getFASTASequenceLinearForward config
                                                  currentregion

@@ -137,7 +137,7 @@ fastaRegionInspect config = do
                                                 allmappedambiguitystrstuple
                                                 biomartregiondata
                               )
-        atomically $ await regions 
+        atomically $ await regions
       variantsf <- do variants <- fork scope (do --Utilize linear resources to open the input
                                                  --fasta file and read in the sequence associated with
                                                  --the variants sequence description.
