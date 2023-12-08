@@ -15,7 +15,8 @@ import qualified Data.ByteString.Char8               as DB
 import           Data.List                           as DL
 import           Data.List.Linear                    as DLL
 import           Data.Ord                            as DO
-import           Data.Text (Text(..),splitOn,unpack)
+import           Data.Text                                      (Text(..),splitOn,unpack)
+import qualified Data.Text.Encoding                  as DTE     (encodeUtf8)
 import qualified Data.Unrestricted.Linear
 import           GHC.Integer
 import           Prelude.Linear
@@ -115,7 +116,7 @@ getFASTASequenceLinearReverse config
                               Control.return $ Ur Nothing
           False -> Control.do (Ur newseqline,handle'') <- Linear.hGetLine handle'
                               let newseqlinef = DB.append fastaseq
-                                                          (DB.filter (\x -> x /= '\n') $ DB.pack $ unpack newseqline)
+                                                          (DTE.encodeUtf8 newseqline)
                               case (tsswindowsize config) of
                                 Just size -> case (DB.length newseqlinef) DO.> (read $ unpack size) of
                                                True  -> Control.do let newseqlineff  = DB.dropEnd ( (DB.length newseqlinef)
@@ -178,7 +179,7 @@ getFASTASequenceLinearForward config
                               Control.return $ Ur Nothing
           False -> Control.do (Ur newseqline,handle'') <- Linear.hGetLine handle'
                               let newseqlinef = DB.append fastaseq
-                                                          (DB.filter (\x -> x /= '\n') $ DB.pack $ unpack newseqline)
+                                                          (DTE.encodeUtf8 newseqline)
                               case (tsswindowsize config) of
                                 Just size -> case (DB.length newseqlinef) DO.> (read $ unpack size) of
                                                True  -> Control.do let newseqlineff  = DB.dropEnd ( (DB.length newseqlinef)
@@ -225,7 +226,9 @@ getFASTASequenceLinear config
                                                                                        )
                                                                                        (read $ unpack size)
                                                                         )
-                                                                        (fai_offset cfai)
+                                                                        ( plusInteger (fai_offset cfai)
+                                                                                      1
+                                                                        )
                                                           )
                                 Nothing   -> Linear.hSeek handle
                                                           Linear.AbsoluteSeek
@@ -234,7 +237,9 @@ getFASTASequenceLinear config
                                                                                        )
                                                                                        2000
                                                                         )
-                                                                        (fai_offset cfai)
+                                                                        ( plusInteger (fai_offset cfai)
+                                                                                      1
+                                                                        )
                                                           )
                    getFASTASequenceLinearReverse config
                                                  currentregion
@@ -249,7 +254,9 @@ getFASTASequenceLinear config
                                             ( plusInteger ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
                                                                          1
                                                           )
-                                                          (fai_offset cfai)
+                                                          ( plusInteger (fai_offset cfai)
+                                                                        1
+                                                          )
                                             )
                    getFASTASequenceLinearForward config
                                                  currentregion
