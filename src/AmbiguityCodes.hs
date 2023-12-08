@@ -49,6 +49,7 @@ reverseComplementNucleotide currentsequence =
                              , ('T','A')
                              , ('G','C')
                              , ('C','G')
+                             , ('N','N')
                              ]
 
 subStrLocationsSmallForward :: forall {es :: [Effect]} {b}.
