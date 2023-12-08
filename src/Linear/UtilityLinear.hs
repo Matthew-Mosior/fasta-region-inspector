@@ -220,21 +220,21 @@ getFASTASequenceLinear config
                    handle' <- case (tsswindowsize config) of
                                 Just size -> Linear.hSeek handle
                                                           Linear.AbsoluteSeek
-                                                          ( plusInteger ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
-                                                                                       ( minusInteger (read $ unpack size)
-                                                                                                      1
+                                                          ( plusInteger ( minusInteger (minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                                     1
                                                                                        )
+                                                                                       (read $ unpack size)
                                                                         )
                                                                         (fai_offset cfai)
                                                           )
                                 Nothing   -> Linear.hSeek handle
                                                           Linear.AbsoluteSeek
-                                                          ( plusInteger ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
-                                                                                       ( minusInteger 2000 
-                                                                                                      1
+                                                          ( plusInteger ( minusInteger (minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                                     1
                                                                                        )
-                                                                         )
-                                                                         (fai_offset cfai)
+                                                                                       2000
+                                                                        )
+                                                                        (fai_offset cfai)
                                                           )
                    getFASTASequenceLinearReverse config
                                                  currentregion
