@@ -115,7 +115,7 @@ getFASTASequenceLinearReverse config
                               Control.return $ Ur Nothing
           False -> Control.do (Ur newseqline,handle'') <- Linear.hGetLine handle'
                               let newseqlinef = DB.append fastaseq
-                                                          (DB.pack $ unpack newseqline)
+                                                          (DB.filter (\x -> x /= '\n') $ DB.pack $ unpack newseqline)
                               case (tsswindowsize config) of
                                 Just size -> case (DB.length newseqlinef) DO.> (read $ unpack size) of
                                                True  -> Control.do let newseqlineff  = DB.dropEnd ( (DB.length newseqlinef)
@@ -178,7 +178,7 @@ getFASTASequenceLinearForward config
                               Control.return $ Ur Nothing
           False -> Control.do (Ur newseqline,handle'') <- Linear.hGetLine handle'
                               let newseqlinef = DB.append fastaseq
-                                                          (DB.pack $ unpack newseqline)
+                                                          (DB.filter (\x -> x /= '\n') $ DB.pack $ unpack newseqline)
                               case (tsswindowsize config) of
                                 Just size -> case (DB.length newseqlinef) DO.> (read $ unpack size) of
                                                True  -> Control.do let newseqlineff  = DB.dropEnd ( (DB.length newseqlinef)
