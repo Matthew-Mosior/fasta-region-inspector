@@ -49,7 +49,6 @@ reverseComplementNucleotide currentsequence =
                              , ('T','A')
                              , ('G','C')
                              , ('C','G')
-                             , ('N','N')
                              ]
 
 subStrLocationsSmallForward :: forall {es :: [Effect]} {b}.
@@ -395,6 +394,14 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                                           , []
                                                                           )
                                                    Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
+                                                                                                    (maxnumberconcthreads config)
+                                                                                                    callingfunction
+                                                                                                    ( "FASTA sequence for " DL.++
+                                                                                                      currentregiongenename DL.++
+                                                                                                      " :"                  DL.++
+                                                                                                      (show fastaseqf)
+                                                                                                    )
+                                                                        _ <- liftIO $ showPrettyLog LogInfo
                                                                                                     (maxnumberconcthreads config)
                                                                                                     callingfunction
                                                                                                     ( "Grabbing all mapped ambiguity string locations for "
