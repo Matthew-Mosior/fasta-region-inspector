@@ -145,7 +145,7 @@ subStrLocations config
                                                                   allmappedambiguitystrs
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
-                            ((read currentregiontss) + i)))
+                            ((read currentregiontss) + i + 1)))
                           forwardsubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
      | otherwise
@@ -162,7 +162,7 @@ subStrLocations config
                                                                   allmappedambiguitystrs
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
-                            ((read currentregiontss) + i)))
+                            ((read currentregiontss) + i + 1)))
                           forwardsubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
     where
@@ -394,14 +394,6 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                                           , []
                                                                           )
                                                    Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
-                                                                                                    (maxnumberconcthreads config)
-                                                                                                    callingfunction
-                                                                                                    ( "FASTA sequence for " DL.++
-                                                                                                      currentregiongenename DL.++
-                                                                                                      " :"                  DL.++
-                                                                                                      (show fastaseqf)
-                                                                                                    )
-                                                                        _ <- liftIO $ showPrettyLog LogInfo
                                                                                                     (maxnumberconcthreads config)
                                                                                                     callingfunction
                                                                                                     ( "Grabbing all mapped ambiguity string locations for "
