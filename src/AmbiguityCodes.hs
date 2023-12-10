@@ -137,7 +137,7 @@ subStrLocations config
                                                                   allmappedambiguitystrs 
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
-                            ((((read currentregiontss) - (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int)) + i) + 2)))
+                            ((((read currentregiontss) - (read (DText.unpack $ DMaybe.fromJust tsswinsizec) :: Int)) + i) + 1)))
                           reversesubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise
@@ -154,7 +154,7 @@ subStrLocations config
                                                                   allmappedambiguitystrs
                                                                   fastaseq
                  return $ ((DL.map (DL.map (\i ->
-                            ((((read currentregiontss) - 2000) + i) + 2)))
+                            ((((read currentregiontss) - 2000) + i) + 1)))
                           reversesubstrlocs)
                           `CPS.using` (CPS.parList CPS.rdeepseq))
            | otherwise

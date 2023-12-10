@@ -148,7 +148,9 @@ getFASTASequenceLinearReverse config
                                                                               let newseqlinef   = DB.append fastaseq
                                                                                                             (DTE.encodeUtf8 newseqline)
                                                                               let newseqlineff  = DB.takeEnd ( fromIntegral ( minusInteger seqcounterf
-                                                                                                                                           (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                                                                           ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                                                                                          (read $ unpack size)
+                                                                                                                                           )
                                                                                                                             ) :: Int
                                                                                                              )
                                                                                                   newseqlinef
@@ -197,7 +199,9 @@ getFASTASequenceLinearReverse config
                                                                               let newseqlinef   = DB.append fastaseq
                                                                                                             (DTE.encodeUtf8 newseqline)
                                                                               let newseqlineff  = DB.takeEnd ( fromIntegral ( minusInteger seqcounterf
-                                                                                                                                           (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                                                                           ( minusInteger (toInteger $ read $ unpack $ biomartregion_tss currentregion)
+                                                                                                                                                          2000
+                                                                                                                                           )
                                                                                                                             ) :: Int
                                                                                                              )
                                                                                                   newseqlinef
