@@ -53,7 +53,8 @@ The following keys are **required**:
 - ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the wget system call. (Boolean)
 - ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
 - ```Write_Ambiguity_Codes``` -> Whether or not to write CSV file containing all locations of user-defined mapped ambiguity code strings in TSS window. (Boolean)
-- ```Max_Number_of_Concurrent_Threads``` -> The max number of threads to be able to use at any one time (Int)
+- ```Max_Number_of_Concurrent_Threads``` -> The max number of threads to be able to use at any one time. (Int)
+  - You can use up to and including `999` threads.
 
 The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across. (String)
@@ -66,6 +67,7 @@ The following keys are **required**:
 - ```Sample``` -> The associated sample identifier for the respective variant (String).
 - ```HGNC_Symbol``` -> The HGNC symbol for the respective variant (String).
 - ```Chromosome``` -> The chromosome the respective variant lies within (String).
+  - You should include all characters up to the first tab character in the description line.
 - ```Start_Position``` -> The start position for the respective variant (String).
 - ```End_Position``` -> The end position for the respective variant (String).
 - ```Reference_Allele``` -> The reference allele for the respective variant (String).
