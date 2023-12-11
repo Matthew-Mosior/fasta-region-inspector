@@ -31,7 +31,7 @@ This version of **FRI** is vastly improved upon in numerous ways, including:
   - The previous version lacked any sense of multi-threading.
   - The new version utilizes scope-delimited thread lifetimes in order to concurrently perform the most computationally expensive functions in parallel.
 - A new effect system.
-  - The previous version lacked any sort of effect system, albeit mtl or otherwise.
+  - The previous version lacked any sort of effect system, mtl or otherwise.
   - The new version introduces effects via the `effectful` ecosystem, which is a series of packages optimized for performance, usability, and clarity.
 - More in-depth logging.
   - The previous version handled logging as a simple call to the clock, and a statement.
