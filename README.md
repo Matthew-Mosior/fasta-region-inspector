@@ -54,7 +54,7 @@ The following keys are **required**:
 - ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
 - ```Write_Ambiguity_Codes``` -> Whether or not to write CSV file containing all locations of user-defined mapped ambiguity code strings in TSS window. (Boolean)
 - ```Max_Number_of_Concurrent_Threads``` -> The max number of threads to be able to use at any one time. (Int)
-  - You can use up to and including `999` threads.
+  - You can use up to `999` threads.
 
 The following keys are **optional**:
 - ```TSS_Window_Size``` -> The TSS window size to search across. (String)
