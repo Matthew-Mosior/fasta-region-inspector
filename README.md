@@ -50,7 +50,7 @@ The following keys are **required**:
 - ```Variants``` -> A [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) (see [below](https://github.com/Matthew-Mosior/Fasta-Region-Inspector/blob/main/README.md#variant-type) for more information).
 - ```Ambiguity_Codes``` -> An array of ambiguity codes to search against. (String)
 - ```Output_Directory``` -> The filepath to the output directory (must already exist). (String)
-- ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the wget system call. (Boolean)
+- ```Keep_BioMart``` -> Whether or not to keep the BioMart file from the http request. (Boolean)
 - ```Ignore_Strandedness``` -> Whether or not to ignore strandness of the respective gene and search the TSS in both directions. (Boolean)
 - ```Write_Ambiguity_Codes``` -> Whether or not to write CSV file containing all locations of user-defined mapped ambiguity code strings in TSS window. (Boolean)
 - ```Max_Number_of_Concurrent_Threads``` -> The max number of threads to be able to use at any one time. (Int)
