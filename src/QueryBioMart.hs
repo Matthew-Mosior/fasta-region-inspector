@@ -43,7 +43,8 @@ import           System.Process           as SP
 import           Text.XML                 as TXML
 
 runQueryBioMart :: forall {es :: [Effect]}.
-                 ( IOE :> es
+                 ( FRILogging :> es
+                 , IOE :> es
                  , HasCallStack
                  )
                 => FRIConfig
@@ -52,10 +53,10 @@ runQueryBioMart config = do
   --Get calling function name.
   let ((callingfunction,_):_) = getCallStack callStack
   --Generate BioMart compatible xml.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Generating BioMart compatible XML."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Generating BioMart compatible XML."
   let biomartxml = TXML.Element "Query" (Map.fromList [ ("virtualSchemaName","default")
                                                       , ("formatter","CSV")
                                                       , ("header","0")
@@ -136,20 +137,20 @@ runQueryBioMart config = do
                               }
                                 where
                                   statusCodeR = NHTTPT.statusCode DF.. responseStatus
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Querying and downloading region data from BioMart via HTTP request."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Querying and downloading region data from BioMart via HTTP request."
   biomartrequest <- runReq httpconfig $ do
                       let params = "query" =: ((DTextL.toStrict $ renderText def finalbiomartxml) :: DText.Text)
                       req NHR.POST (http "www.ensembl.org" /: "biomart" /: "martservice")
                                    (ReqBodyUrlEnc params)
                                    bsResponse
                                    mempty
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Successfully queried and returned region data from BioMart via HTTP request."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Successfully queried and returned region data from BioMart via HTTP request."
   let returnedbiomartregions = DBC8.unpack $
                                NHR.responseBody biomartrequest 
   let finalbiomartregions = DL.map (\x -> DLS.splitOn "," x)
@@ -174,18 +175,18 @@ runQueryBioMart config = do
                             finalbiomartregions
   if | keepbiomart config
      -> if | DL.last outputdir == '/'
-           -> do _ <- liftIO $ showPrettyLog LogInfo
-                                             (maxnumberconcthreads config)
-                                             callingfunction
-                                             "Writing BioMart region data to file biomartresult.txt in output directory."
+           -> do _ <- showPrettyLog LogInfo
+                                    (maxnumberconcthreads config)
+                                    callingfunction
+                                    "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "biomartresult.txt")
                                              returnedbiomartregions
                  liftIO $ return processedregiondata
            | otherwise
-           -> do _ <- liftIO $ showPrettyLog LogInfo
-                                             (maxnumberconcthreads config)
-                                             callingfunction
-                                             "Writing BioMart region data to file biomartresult.txt in output directory."
+           -> do _ <- showPrettyLog LogInfo
+                                    (maxnumberconcthreads config)
+                                    callingfunction
+                                    "Writing BioMart region data to file biomartresult.txt in output directory."
                  _ <- liftIO $ SIO.writeFile (outputdir ++ "/" ++ "biomartresult.txt")
                                              returnedbiomartregions
                  liftIO $ return processedregiondata 
