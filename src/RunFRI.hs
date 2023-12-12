@@ -98,7 +98,8 @@ processConfigurationYaml config = do
      -> return False  
 
 runFastaRegionInspector :: forall {es :: [Effect]} {b}.
-                           ( StructuredConcurrency :> es
+                           ( FRILogging :> es
+                           , StructuredConcurrency :> es
                            , IOE :> es
                            , HasCallStack
                            )
@@ -119,8 +120,8 @@ runFastaRegionInspector (_,inputfiles) = do
      -> fastaRegionInspect decodedinputyaml
      | otherwise
      -> do --Print out failure message.
-           _ <- liftIO $ showPrettyLog LogDebug
-                                       (maxnumberconcthreads decodedinputyaml)
-                                       callingfunction
-                                       "Could not sanitize Configuration YAML."
+           _ <- showPrettyLog LogDebug
+                              (maxnumberconcthreads decodedinputyaml)
+                              callingfunction
+                              "Could not sanitize Configuration YAML."
            liftIO $ SX.exitWith (SX.ExitFailure 1)

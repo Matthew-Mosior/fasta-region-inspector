@@ -7,6 +7,7 @@
 module Main where
 
 import CmdOpts
+import Logging
 import MacroFont
 import RunFRI
 
@@ -31,4 +32,4 @@ friApp = do --Get command line arguments.
             if | DL.length files /= 1
                -> liftIO $ SX.exitWith (SX.ExitFailure 1) 
                | otherwise
-               -> runStructuredConcurrency $ runFastaRegionInspector (args,files)   
+               -> runFRILogging $ runStructuredConcurrency $ runFastaRegionInspector (args,files)   

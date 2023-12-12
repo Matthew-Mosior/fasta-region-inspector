@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Linear.RegionsLinear where
 
 import AmbiguityCodes
+import Logging
 import Region
 import Types
 
@@ -18,7 +18,8 @@ import           Effectful
 import           Effectful.Ki
 
 regionsLinear :: forall {es :: [Effect]}.
-                 ( StructuredConcurrency :> es
+                 ( FRILogging :> es
+                 , StructuredConcurrency :> es
                  , IOE :> es
                  )
               => Maybe Text

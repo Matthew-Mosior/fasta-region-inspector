@@ -52,7 +52,8 @@ reverseComplementNucleotide currentsequence =
                              ]
 
 subStrLocationsSmallForward :: forall {es :: [Effect]} {b}.
-                               ( IOE :> es
+                               ( FRILogging :> es
+                               , IOE :> es
                                , HasCallStack
                                )
                             => FRIConfig
@@ -64,15 +65,15 @@ subStrLocationsSmallForward config
                             (currentmappedambstr:restofmappedambstrs)
                             finalfastafile = do
   let ((callingfunction,_):_) = getCallStack callStack
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              ( "Processing mapped ambiguity code "
-                                DL.++
-                                currentmappedambstr
-                                DL.++
-                                "."
-                              )
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     ( "Processing mapped ambiguity code "
+                       DL.++
+                       currentmappedambstr
+                       DL.++
+                       "."
+                     )
   res <- subStrLocationsSmallForward config
                                      restofmappedambstrs
                                      finalfastafile
@@ -81,7 +82,8 @@ subStrLocationsSmallForward config
            ) : res
 
 subStrLocationsSmallReverse :: forall {es :: [Effect]} {b}.
-                               ( IOE :> es
+                               ( FRILogging :> es
+                               , IOE :> es
                                , HasCallStack
                                )
                             => FRIConfig
@@ -93,15 +95,15 @@ subStrLocationsSmallReverse config
                             (currentmappedambstr:restofmappedambstrs)
                             finalfastafile = do
   let ((callingfunction,_):_) = getCallStack callStack
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              ( "Processing mapped ambiguity code "
-                                DL.++
-                                currentmappedambstr
-                                DL.++
-                                "."
-                              )
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     ( "Processing mapped ambiguity code "
+                       DL.++
+                       currentmappedambstr
+                       DL.++
+                       "."
+                     )
   res <- subStrLocationsSmallReverse config
                                      restofmappedambstrs
                                      finalfastafile
@@ -117,7 +119,8 @@ subStrLocationsSmallReverse config
            ) : res
 
 subStrLocations :: forall {es :: [Effect]} {b}.
-                   ( IOE :> es
+                   ( FRILogging :> es
+                   , IOE :> es
                    )
                 => FRIConfig
                 -> Maybe Text
@@ -170,7 +173,8 @@ subStrLocations config
       currentregiontss    = DText.unpack $ biomartregion_tss currentregion
 
 ambiguityCodesWithinRegionCheckIgnoreStrandSmall :: forall {es :: [Effect]} {b}.
-                                                    ( StructuredConcurrency :> es
+                                                    ( FRILogging :> es
+                                                    , StructuredConcurrency :> es
                                                     , IOE :> es
                                                     , HasCallStack
                                                     )
@@ -203,83 +207,83 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
                                                  , currentregionstrand
                                                  , currentregiongenename
                                                  ]
-                     _ <- liftIO $ showPrettyLog LogInfo
-                                                 (maxnumberconcthreads config)
-                                                 callingfunction
-                                                 ( "Processing region data associated with gene "
-                                                   DL.++
-                                                   currentregiongenename
-                                                   DL.++
-                                                   "."
-                                                 )
+                     _ <- showPrettyLog LogInfo
+                                        (maxnumberconcthreads config)
+                                        callingfunction
+                                        ( "Processing region data associated with gene "
+                                          DL.++
+                                          currentregiongenename
+                                          DL.++
+                                          "."
+                                        )
                      --Ignore strandedness, find both the ambiguity mapped strings
                      --and the reverse complement ambiguity mapped strings.
                      --Grab locations of mapped ambiguity codes,
                      --and recurse.
                      --Grab locations of mapped am codes,
                      --and recurse.
-                     _ <- liftIO $ showPrettyLog LogInfo
-                                                 (maxnumberconcthreads config)
-                                                 callingfunction
-                                                 ( "Reading fasta index file for "
-                                                   DL.++
-                                                   currentregiongenename
-                                                   DL.++
-                                                   "."
-                                                 )
+                     _ <- showPrettyLog LogInfo
+                                        (maxnumberconcthreads config)
+                                        callingfunction
+                                        ( "Reading fasta index file for "
+                                          DL.++
+                                          currentregiongenename
+                                          DL.++
+                                          "."
+                                        )
                      cfai       <- liftIO $ Linear.run $ getFAILineLinear config
                                                                           currentregion
                      case cfai of
-                       Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
-                                                                 (maxnumberconcthreads config)
-                                                                 callingfunction
-                                                                 ( "Could not retrieve required information from fasta index file for "
-                                                                   DL.++
-                                                                   currentregiongenename
-                                                                   DL.++
-                                                                   "."
-                                                                 )
+                       Nothing -> do _ <- showPrettyLog LogTrace
+                                                        (maxnumberconcthreads config)
+                                                        callingfunction
+                                                        ( "Could not retrieve required information from fasta index file for "
+                                                          DL.++
+                                                          currentregiongenename
+                                                          DL.++
+                                                          "."
+                                                        )
                                      return $ ( currentambcode
                                               , DL.map fst allmappedambiguitystrs
                                               , allcurrentregiondata
                                               , []
                                               )
-                       Just cfaif -> do _ <- liftIO $ showPrettyLog LogInfo
-                                                                    (maxnumberconcthreads config)
-                                                                    callingfunction
-                                                                    ( "Reading in fasta file for "
-                                                                      DL.++
-                                                                      currentregiongenename
-                                                                      DL.++
-                                                                      "."
-                                                                    )
+                       Just cfaif -> do _ <- showPrettyLog LogInfo
+                                                           (maxnumberconcthreads config)
+                                                           callingfunction
+                                                           ( "Reading in fasta file for "
+                                                             DL.++
+                                                             currentregiongenename
+                                                             DL.++
+                                                             "."
+                                                           )
                                         fastaseq   <- liftIO $ Linear.run $ getFASTASequenceLinear config
                                                                                                    currentregion
                                                                                                    cfaif
                                         case fastaseq of
-                                          Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
-                                                                                    (maxnumberconcthreads config)
-                                                                                    callingfunction
-                                                                                    ( "Could not retrieve required information from fasta file for "
-                                                                                      DL.++
-                                                                                      currentregiongenename
-                                                                                      DL.++
-                                                                                      "."
-                                                                                    )
+                                          Nothing -> do _ <- showPrettyLog LogTrace
+                                                                           (maxnumberconcthreads config)
+                                                                           callingfunction
+                                                                           ( "Could not retrieve required information from fasta file for "
+                                                                             DL.++
+                                                                             currentregiongenename
+                                                                             DL.++
+                                                                             "."
+                                                                           )
                                                         return $ ( currentambcode
                                                                  , DL.map fst allmappedambiguitystrs
                                                                  , allcurrentregiondata
                                                                  , []
                                                                  )
-                                          Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
-                                                                                           (maxnumberconcthreads config)
-                                                                                           callingfunction
-                                                                                           ( "Grabbing all mapped ambiguity string locations for "
-                                                                                             DL.++
-                                                                                             currentregiongenename
-                                                                                             DL.++
-                                                                                             "."
-                                                                                           )
+                                          Just fastaseqf -> do _ <- showPrettyLog LogInfo
+                                                                                  (maxnumberconcthreads config)
+                                                                                  callingfunction
+                                                                                  ( "Grabbing all mapped ambiguity string locations for "
+                                                                                    DL.++
+                                                                                    currentregiongenename
+                                                                                    DL.++
+                                                                                    "."
+                                                                                  )
                                                                substrlocs <- subStrLocations config
                                                                                              tsswinsizec
                                                                                              (DL.map fst allmappedambiguitystrs)
@@ -295,7 +299,8 @@ ambiguityCodesWithinRegionCheckIgnoreStrandSmall tsswinsizec
       atomically $ await currentregioncheckdata
 
 ambiguityCodesWithinRegionCheckSmall :: forall {es :: [Effect]} {b}.
-                                        ( StructuredConcurrency :> es
+                                        ( FRILogging :> es
+                                        , StructuredConcurrency :> es
                                         , IOE :> es
                                         , HasCallStack
                                         )
@@ -328,80 +333,80 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                                                  , currentregionstrand
                                                  , currentregiongenename
                                                  ]
-                     _ <- liftIO $ showPrettyLog LogInfo
+                     _ <- showPrettyLog LogInfo
+                                        (maxnumberconcthreads config)
+                                        callingfunction
+                                        ( "Processing region data associated with gene "
+                                          DL.++
+                                          currentregiongenename
+                                          DL.++
+                                          "."
+                                        )
+                     if | currentregionstrand == currentstrand
+                        -> do --Grab locations of mapped am codes,
+                              --and recurse.
+                              _ <- showPrettyLog LogInfo
                                                  (maxnumberconcthreads config)
                                                  callingfunction
-                                                 ( "Processing region data associated with gene "
+                                                 ( "Reading fasta index file for "
                                                    DL.++
                                                    currentregiongenename
                                                    DL.++
                                                    "."
                                                  )
-                     if | currentregionstrand == currentstrand
-                        -> do --Grab locations of mapped am codes,
-                              --and recurse.
-                              _ <- liftIO $ showPrettyLog LogInfo
-                                                          (maxnumberconcthreads config)
-                                                          callingfunction
-                                                          ( "Reading fasta index file for "
-                                                            DL.++
-                                                            currentregiongenename
-                                                            DL.++
-                                                            "."
-                                                          )
                               cfai       <- liftIO $ Linear.run $ getFAILineLinear config
                                                                                    currentregion
                               case cfai of
-                                Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
-                                                                          (maxnumberconcthreads config)
-                                                                          callingfunction
-                                                                          ( "Could not retrieve required information from fasta index file for "
-                                                                            DL.++
-                                                                            currentregiongenename
-                                                                            DL.++
-                                                                            "."
-                                                                          )
+                                Nothing -> do _ <- showPrettyLog LogTrace
+                                                                 (maxnumberconcthreads config)
+                                                                 callingfunction
+                                                                 ( "Could not retrieve required information from fasta index file for "
+                                                                   DL.++
+                                                                   currentregiongenename
+                                                                   DL.++
+                                                                   "."
+                                                                 )
                                               return $ ( currentambcode
                                                        , DL.map fst allmappedambiguitystrs
                                                        , allcurrentregiondata
                                                        , []
                                                        )
-                                Just cfaif -> do _ <- liftIO $ showPrettyLog LogInfo
-                                                                             (maxnumberconcthreads config)
-                                                                             callingfunction
-                                                                             ( "Reading in fasta file for "
-                                                                               DL.++
-                                                                               currentregiongenename
-                                                                               DL.++
-                                                                               "."
-                                                                             )
+                                Just cfaif -> do _ <- showPrettyLog LogInfo
+                                                                    (maxnumberconcthreads config)
+                                                                    callingfunction
+                                                                    ( "Reading in fasta file for "
+                                                                      DL.++
+                                                                      currentregiongenename
+                                                                      DL.++
+                                                                      "."
+                                                                    )
                                                  fastaseq   <- liftIO $ Linear.run $ getFASTASequenceLinear config
                                                                                                             currentregion
                                                                                                             cfaif
                                                  case fastaseq of
-                                                   Nothing -> do _ <- liftIO $ showPrettyLog LogTrace
-                                                                                             (maxnumberconcthreads config)
-                                                                                             callingfunction
-                                                                                             ( "Could not retrieve required information from fasta file for "
-                                                                                               DL.++
-                                                                                               currentregiongenename
-                                                                                               DL.++
-                                                                                               "."
-                                                                                             )
+                                                   Nothing -> do _ <- showPrettyLog LogTrace
+                                                                                    (maxnumberconcthreads config)
+                                                                                    callingfunction
+                                                                                    ( "Could not retrieve required information from fasta file for "
+                                                                                      DL.++
+                                                                                      currentregiongenename
+                                                                                      DL.++
+                                                                                      "."
+                                                                                    )
                                                                  return $ ( currentambcode
                                                                           , DL.map fst allmappedambiguitystrs
                                                                           , allcurrentregiondata
                                                                           , []
                                                                           )
-                                                   Just fastaseqf -> do _ <- liftIO $ showPrettyLog LogInfo
-                                                                                                    (maxnumberconcthreads config)
-                                                                                                    callingfunction
-                                                                                                    ( "Grabbing all mapped ambiguity string locations for "
-                                                                                                      DL.++
-                                                                                                      currentregiongenename
-                                                                                                      DL.++
-                                                                                                      "."
-                                                                                                    )
+                                                   Just fastaseqf -> do _ <- showPrettyLog LogInfo
+                                                                                           (maxnumberconcthreads config)
+                                                                                           callingfunction
+                                                                                           ( "Grabbing all mapped ambiguity string locations for "
+                                                                                             DL.++
+                                                                                             currentregiongenename
+                                                                                             DL.++
+                                                                                             "."
+                                                                                           )
                                                                         substrlocs <- subStrLocations config
                                                                                                       tsswinsizec
                                                                                                       (DL.map fst allmappedambiguitystrs)
@@ -416,23 +421,23 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
                         -> do --Current ambiguity codes and mapped strings
                               --are not correct for region strand
                               --(i.e. "-1" != "1" or "1" != "-1").
-                              _ <- liftIO $ showPrettyLog LogInfo
-                                                          (maxnumberconcthreads config)
-                                                          callingfunction
-                                                          ( "Could not process region data associated with current ambiguity code "
-                                                            DL.++
-                                                            currentambcode
-                                                            DL.++
-                                                            ": "
-                                                            DL.++
-                                                            currentambcode
-                                                            DL.++
-                                                            " strand orientation is "
-                                                            DL.++
-                                                            currentregionstrand
-                                                            DL.++
-                                                            "."
-                                                          )
+                              _ <- showPrettyLog LogInfo
+                                                 (maxnumberconcthreads config)
+                                                 callingfunction
+                                                 ( "Could not process region data associated with current ambiguity code "
+                                                   DL.++
+                                                   currentambcode
+                                                   DL.++
+                                                   ": "
+                                                   DL.++
+                                                   currentambcode
+                                                   DL.++
+                                                   " strand orientation is "
+                                                   DL.++
+                                                   currentregionstrand
+                                                   DL.++
+                                                   "."
+                                                 )
                               return $ ( currentambcode
                                        , DL.map fst allmappedambiguitystrs
                                        , allcurrentregiondata
@@ -443,7 +448,8 @@ ambiguityCodesWithinRegionCheckSmall tsswinsizec
       atomically $ await currentregioncheckdata
 
 ambiguityCodesWithinRegionCheckIgnoreStrand :: forall {es :: [Effect]} {b}.
-                                               ( StructuredConcurrency :> es
+                                               ( FRILogging :> es
+                                               , StructuredConcurrency :> es
                                                , IOE :> es
                                                )
                                             => Maybe Text
@@ -473,7 +479,8 @@ ambiguityCodesWithinRegionCheckIgnoreStrand tsswinsizec
   return $ ambcodeswithinregioncheck : res
 
 ambiguityCodesWithinRegionCheck :: forall {es :: [Effect]} {b}.
-                                   ( StructuredConcurrency :> es
+                                   ( FRILogging :> es
+                                   , StructuredConcurrency :> es
                                    , IOE :> es
                                    )
                                 => Maybe Text

@@ -1,31 +1,51 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE MultiWayIf    #-}
-{-# LANGUAGE Strict        #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE Strict            #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Logging where
 
-import Control.Concurrent (myThreadId,ThreadId)
+import Control.Concurrent        (myThreadId,ThreadId)
 import Data.List
 import Data.Time
+import Effectful
+import Effectful.Dispatch.Static
 import GHC.Generics
-import System.IO          (putStrLn)
+import System.IO                 (putStrLn)
 
 data LoggingLevel = LogInfo
                   | LogDebug
                   | LogTrace
   deriving (Eq,Generic,Read,Show)
 
-showPrettyLog :: LoggingLevel
+data FRILogging :: Effect
+
+type instance DispatchOf FRILogging = 'Static 'WithSideEffects
+data instance StaticRep  FRILogging = FRILogging 
+
+runFRILogging :: IOE :> es => Eff (FRILogging : es) a -> Eff es a
+runFRILogging = evalStaticRep FRILogging
+
+showPrettyLog :: forall {es :: [Effect]} {b}.
+                 ( FRILogging :> es
+                 , IOE :> es
+                 )
+              => LoggingLevel
               -> Int
               -> String
               -> String
-              -> IO () 
+              -> Eff es () 
 showPrettyLog ll
               maxthreadnumber
               callingfunction
               message = do
-  currenttandd                   <- getZonedTime 
-  tid                            <- myThreadId
+  currenttandd                   <- liftIO getZonedTime 
+  tid                            <- liftIO myThreadId
   let tidc                       = read   $ 
                                    drop 9 $ 
                                    show tid
@@ -52,23 +72,24 @@ showPrettyLog ll
                                       | otherwise
                                       -> take 0 $
                                          repeat ' '
-  putStrLn $ ( "["                        ++
-               currenttanddnotimezone     ++
-               zeroestoadd                ++
-               " "                        ++
-               currenttimezone            ++
-               "]"                        ++
-               " || "                     ++
-               (show ll)                  ++
-               " || "                     ++
-               (show tid)                 ++
-               spacestoaddtid             ++
-               " || "                     ++
-               callingfunction            ++
-               spacestoaddcallingfunction ++
-               " || "                     ++
-               message
-             )
+  liftIO     $
+    putStrLn $ ( "["                        ++
+                 currenttanddnotimezone     ++
+                 zeroestoadd                ++
+                 " "                        ++
+                 currenttimezone            ++
+                 "]"                        ++
+                 " || "                     ++
+                 (show ll)                  ++
+                 " || "                     ++
+                 (show tid)                 ++
+                 spacestoaddtid             ++
+                 " || "                     ++
+                 callingfunction            ++
+                 spacestoaddcallingfunction ++
+                 " || "                     ++
+                 message
+               )
     where
       zonedtimelength           = 29
       longestfunctionnamelength = 48

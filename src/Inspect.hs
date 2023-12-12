@@ -45,7 +45,8 @@ import           GHC.Stack                            (callStack,getCallStack,Ha
 import           UnliftIO.Pool                        (mkDefaultPoolConfig,newPool,withResource)
 
 fastaRegionInspect :: forall {es :: [Effect]} {b}.
-                      ( StructuredConcurrency :> es
+                      ( FRILogging :> es
+                      , StructuredConcurrency :> es
                       , IOE :> es
                       , HasCallStack
                       )
@@ -55,65 +56,65 @@ fastaRegionInspect config = do
   --Get calling function name.
   let ((callingfunction,_):_) = getCallStack callStack
   --Query biomart for Region data.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Querying BioMart for regions data."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Querying BioMart for regions data."
   biomartregiondata <- runQueryBioMart config
   --Determine whether each variant is within
   --the TSS of the genes each variant is located in.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Determining whether each variant is within its respective gene's TSS."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Determining whether each variant is within its respective gene's TSS."
   let withintss = variantWithinRegionCheck config
                                            biomartregiondata
   --Prepare withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss for printing.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Massaging TSS determination data into more usable format."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Massaging TSS determination data into more usable format."
   let printreadywithintss = prepareWithinTSS withintss
   --Grab the reverse complement of the 
   --user defined ambiguity codes.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Calculating the reverse complement of each user defined ambiguity code."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Calculating the reverse complement of each user defined ambiguity code."
   let ambiguitycodesreversecomplements = ambiguityCodesReverseComplement config
   --Create list of tuples defining directionality of ambiguitycodes.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Creating list of tuples to define directionality of each forward strand ambiguity code."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Creating list of tuples to define directionality of each forward strand ambiguity code."
   let ambiguitycodesfinaltuple = DL.map (\x -> (x,"1"))
                                  (DL.map (DText.unpack) (ambiguitycodes config))
   --Create list of tuples defining directionality of ambiguitycodesreversecomplements.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Creating list of tuples to define directionality of each reverse strand ambiguity code."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Creating list of tuples to define directionality of each reverse strand ambiguity code."
   let ambiguitycodesreversecomplementstuple = DL.map (\x -> (x,"-1"))
                                               ambiguitycodesreversecomplements 
   --Grab all possible strings created from each ambiguity codes.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Generating all possible ambiguity code strings using SMT solver."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Generating all possible ambiguity code strings using SMT solver."
   allmappedambiguitystrs <- liftIO $ allStrGeneration ( DL.map DText.unpack (ambiguitycodes config) ++
                                                         ambiguitycodesreversecomplements
                                                       ) 
   --Prepare allmappedambiguitystrs for ambiguityCodesWithinRegionCheck.
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Preparing ambiguity code strings to determine whether each lies within its respective TSS."
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Preparing ambiguity code strings to determine whether each lies within its respective TSS."
   let allmappedambiguitystrstuple = stringToTuple allmappedambiguitystrs
   --Initialize a resource pool (for controlling threading).
-  _ <- liftIO $ showPrettyLog LogInfo
-                              (maxnumberconcthreads config)
-                              callingfunction
-                              "Creating initial striped resource pool." 
+  _ <- showPrettyLog LogInfo
+                     (maxnumberconcthreads config)
+                     callingfunction
+                     "Creating initial striped resource pool." 
   resourcepoolconfig <- liftIO $ mkDefaultPoolConfig (pure ())
                                                      (\_ -> pure ())
                                                      (0.5 :: Double)
@@ -127,10 +128,10 @@ fastaRegionInspect config = do
         regions <- fork scope (do --Utilize linear resources to open the input
                                   --fasta file and read in the sequences associated with the
                                   --regions of interest.
-                                  _ <- liftIO $ showPrettyLog LogInfo
-                                                              (maxnumberconcthreads config)
-                                                              callingfunction
-                                                              "Linearly processing all regions data."
+                                  _ <- showPrettyLog LogInfo
+                                                     (maxnumberconcthreads config)
+                                                     callingfunction
+                                                     "Linearly processing all regions data."
                                   regionsLinear (tsswindowsize config)
                                                 config
                                                 (ambiguitycodesfinaltuple ++ ambiguitycodesreversecomplementstuple)
@@ -141,20 +142,20 @@ fastaRegionInspect config = do
       variantsf <- do variants <- fork scope (do --Utilize linear resources to open the input
                                                  --fasta file and read in the sequence associated with
                                                  --the variants sequence description.
-                                                 _ <- liftIO $ showPrettyLog LogInfo
-                                                                             (maxnumberconcthreads config)
-                                                                             callingfunction
-                                                                             "Processing all variant data."
+                                                 _ <- showPrettyLog LogInfo
+                                                                    (maxnumberconcthreads config)
+                                                                    callingfunction
+                                                                    "Processing all variant data."
                                                  variantLinear withintss
                                                                analysisreadyambiguitycodeswithintss
                                              )
                       --Wait for vaiants thread to terminate.
                       atomically $ await variants
       --Prepare withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss for printing.
-      _ <- liftIO $ showPrettyLog LogInfo
-                                  (maxnumberconcthreads config)
-                                  callingfunction
-                                  "Preparing variants for final analysis."
+      _ <- showPrettyLog LogInfo
+                         (maxnumberconcthreads config)
+                         callingfunction
+                         "Preparing variants for final analysis."
       let printreadywithintss = prepareWithinTSS withintss
       let printreadyambiguitycodeswithintss = DL.concat
                                               (DL.map
@@ -166,10 +167,10 @@ fastaRegionInspect config = do
       let finalvariantfile = amalgamateFinalVariantData printreadywithintss
                                                         variantsf
       --Prepare final print ready files with headers.
-      _ <- liftIO $ showPrettyLog LogInfo
-                                  (maxnumberconcthreads config)
-                                  callingfunction
-                                  "Preparing to produce output CSV files."
+      _ <- showPrettyLog LogInfo
+                         (maxnumberconcthreads config)
+                         callingfunction
+                         "Preparing to produce output CSV files."
       let finalprintreadyambiguitycodeswithintss = [ "Ambiguity_Code"
                                                    , "Mapped_Nucleotide_String"
                                                    , "Chromosome"
@@ -191,28 +192,32 @@ fastaRegionInspect config = do
       --let variantsinambiguitycodesandtsscsv = toCSV finalprintreadyvariantsinambiguitycodesandtss
       let finalvariantfilecsv = toCSV printreadyfinalvariantfile 
       --Print withintss, ambiguitycodeswithintss, and variantsinambiguitycodesandtss to files.
-      _ <- liftIO $ showPrettyLog LogInfo
+      if | writeambiguitycodes config
+         -> do _ <- showPrettyLog LogInfo
                                   (maxnumberconcthreads config)
                                   callingfunction
                                   "Producing output CSV files."
-      if | writeambiguitycodes config
-         -> do liftIO $ writeCSV config
+               liftIO $ writeCSV config
                                  ambiguitycodeswithintsscsv
                                  "ambiguity_codes.csv"
                liftIO $ writeCSV config
                                  finalvariantfilecsv
                                  "variants_in_ambiguity_codes.csv"
                --Shut down FRI.
-               liftIO $ showPrettyLog LogInfo
-                                      (maxnumberconcthreads config)
-                                      callingfunction
-                                      "Shutting down fasta-region-inspector v0.2.0.0."
+               showPrettyLog LogInfo
+                             (maxnumberconcthreads config)
+                             callingfunction
+                             "Shutting down fasta-region-inspector v0.2.0.0."
          | otherwise
-         -> do liftIO $ writeCSV config
+         -> do _ <- showPrettyLog LogInfo
+                                  (maxnumberconcthreads config)
+                                  callingfunction
+                                  "Producing output CSV file."
+               liftIO $ writeCSV config
                                  finalvariantfilecsv 
                                  "variants_in_ambiguity_codes.csv"
                --Shut down FRI.
-               liftIO $ showPrettyLog LogInfo
-                                      (maxnumberconcthreads config)
-                                      callingfunction
-                                      "Shutting down fasta-region-inspector v0.2.0.0."
+               showPrettyLog LogInfo
+                             (maxnumberconcthreads config)
+                             callingfunction
+                             "Shutting down fasta-region-inspector v0.2.0.0."
