@@ -27,7 +27,7 @@ This version of **FRI** is vastly improved upon in numerous ways, including:
   - Using `linear types`, system resource usage is provably safe (file handles must be used **once**, and only once).
   - This allows for an incredibly efficient, highly tuned algorithm to seek as close to the TSS sequence as possible, without wasting memory or time.
   - This new and vastly improved method of file IO is a large contributor to the large runtime disparity between the old and new version (**~8X** speedup).
-  - This also means that **FRI** now requires only a fraction of the memory that was previously required.
+  - This also means that **FRI** now requires only a fraction of the memory that it previously required.
 - Much more efficient use of multi-core CPU architecture via multi-threading.
   - The previous version lacked any sense of multi-threading.
   - The new version utilizes scope-delimited thread lifetimes in order to concurrently perform the most computationally expensive functions in parallel.
