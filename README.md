@@ -69,6 +69,7 @@ The following keys are **required**:
 - ```HGNC_Symbol``` -> The HGNC symbol for the respective variant (String).
 - ```Chromosome``` -> The chromosome the respective variant lies within (String).
   - You should include all characters up to the first tab character in the description line.
+  - This is based on what is found in the corresponding FASTA index (fai) file created from the FASTA file. 
   - For example, given this sequence description line, ```>2 dna:chromosome chromosome:GRCh38:2:1:242193529:1 REF```, you would put ```>2```.
 - ```Start_Position``` -> The start position for the respective variant (String).
 - ```End_Position``` -> The end position for the respective variant (String).
