@@ -23,7 +23,7 @@ This tool aims to answer common SHM variant-level questions in a software packag
 ### Old vs. New
 This version of **FRI** is vastly improved upon in numerous ways, including:
 - Optimized file IO via `linear types`.
-  - In the previous version, the entire input FASTA file was read into memory, irrespective of the actual needs for the specific analysis.
+  - In the previous version, the entire input FASTA file was read into memory (via a compact region), irrespective of the actual needs for the specific analysis.
   - Using `linear types`, system resource usage is provably safe (file handles must be used **once**, and only once).
   - This allows for an incredibly efficient, highly tuned algorithm to seek as close to the TSS sequence as possible, without wasting memory or time.
   - This new and vastly improved method of file IO is a large contributor to the large runtime disparity between the old and new version (**~8X** speedup).
