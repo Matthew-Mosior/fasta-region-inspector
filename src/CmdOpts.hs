@@ -17,7 +17,8 @@ options =
   [ Option ['h'] ["help"] (NoArg Help) "Print this help message.\n"
   ]
 
-compilerOpts :: [String] -> IO ([Flag],[String])
+compilerOpts :: [String]
+             -> IO ([Flag],[String])
 compilerOpts argv =
   case getOpt Permute options argv of
     (args,files,[]) ->
@@ -31,5 +32,5 @@ compilerOpts argv =
     where
       greeting = "Fasta-Region-Inspector\n\
                  \Copyright (c) Matthew C. Mosior 2023\n"
-      header   = "Usage: stack exec fasta-region-inspector-exe [-h] [Configuration YAML]\n\
+      header   = "Usage: stack exec fasta-region-inspector [-h] [Configuration YAML]\n\
                  \Fasta-Region-Inspector (FRI), Version 0.2.0.0\n"
