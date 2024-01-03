@@ -62,12 +62,12 @@ The following keys are **optional**:
   - The default is 2000 bp.
 
 ## Variant Type
-The ```Variants``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) key represents the required information surrounding a variant-of-interest to be examined by **FRI**.
+The ```Variant``` [compact nested mapping](https://yaml.org/spec/1.2.2/#chapter-2-language-overview) key represents the required information surrounding a variant-of-interest to be examined by **FRI**.
 
 The following keys are **required**:
 - ```Sample``` -> The associated sample identifier for the respective variant (String).
 - ```HGNC_Symbol``` -> The HGNC symbol for the respective variant (String).
-- ```Chromosome``` -> The chromosome the respective variant lies within (String).
+- ```Sequence_Description``` -> The chromosome the respective variant lies within (String).
   - You should include all characters up to the first tab character in the description line.
   - This is based on sequence description lines within the FASTA file. 
   - For example, given this sequence description line, ```>2 dna:chromosome chromosome:GRCh38:2:1:242193529:1 REF```, you would put ```>2```.
