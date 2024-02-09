@@ -309,7 +309,7 @@ ambiguityCodesWithinRegionCheckSmall :: forall {es :: [Effect]} {b}.
                                      -> ([Char],[Char])
                                      -> [(String,b)]
                                      -> [BioMartRegion]
-                                     -> Eff es [([Char], [String], [String], [[Int]])]
+                                     -> Eff es [(String,[String],[String],[[Int]])]
 ambiguityCodesWithinRegionCheckSmall _ _ ([],[])       []    _  = return []
 ambiguityCodesWithinRegionCheckSmall _ _ _             []    _  = return []
 ambiguityCodesWithinRegionCheckSmall _ _ ([],[])       _     _  = return []

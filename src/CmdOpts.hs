@@ -31,6 +31,6 @@ compilerOpts argv =
                        SX.exitWith (SX.ExitFailure 1)
     where
       greeting = "Fasta-Region-Inspector\n\
-                 \Copyright (c) Matthew C. Mosior 2023\n"
+                 \Copyright (c) Matthew C. Mosior 2024\n"
       header   = "Usage: stack exec fasta-region-inspector [-h] [Configuration YAML]\n\
-                 \Fasta-Region-Inspector (FRI), Version 0.2.0.0\n"
+                 \Fasta-Region-Inspector (FRI), Version 0.3.0.0\n"
