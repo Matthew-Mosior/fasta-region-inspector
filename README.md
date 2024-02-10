@@ -231,13 +231,13 @@ Our variant-of-interest is the **C**, at position **27867219**, due to it being 
 
 Now that you have a better understanding of what the output means, you can be confident in filtering the output file in a way that is congruent with the research question you are trying to answer.
 
-### Graphics Generation
+## Graphics Generation
 
 **FRI** generates SVG graphics for each variant that lies within a mapped ambuguity string, and also lies within 2 kb of the TSS.
 
 Graphics are named using the following scheme:
 
-`Sample`_`Sequence_Description`:`Start_Position`-`End_Position`_`Reference_Allele`:`Alternate_Allele`.svg
+`Sample`__`Sequence_Description`:`Start_Position`-`End_Position`__`Reference_Allele`:`Alternate_Allele`.svg
 
 Currently, the graphics generated show 20 bp centered around the mapped ambuguity string containing the variant-of-interest.
 
