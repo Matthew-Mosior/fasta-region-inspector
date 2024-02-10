@@ -237,7 +237,7 @@ Now that you have a better understanding of what the output means, you can be co
 
 Graphics are named using the following scheme:
 
-`Sample`__`Sequence_Description`:`Start_Position`-`End_Position`__`Reference_Allele`:`Alternate_Allele`.svg
+`Sample`\_`Sequence_Description`:`Start_Position`-`End_Position`\_`Reference_Allele`:`Alternate_Allele`.svg
 
 Currently, the graphics generated show 20 bp centered around the mapped ambuguity string containing the variant-of-interest.
 
