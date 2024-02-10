@@ -19,7 +19,7 @@
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 #resolver:
 #  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/22.yaml
-resolver: lts-22.4
+resolver: lts-22.8
 
   #build:
   #  library-profiling: true
@@ -49,7 +49,6 @@ packages:
 
 extra-deps:
  - ki-effectful-0.1.1.0@sha256:15a4bc01c4195d9e3ed3d0ae25e419b0c035c897494dadefc2d676a43f1f5082,1815
- - log-effectful-1.0.0.0@sha256:126f328c9325c10998289378191dc69e55b5ffdc37a7845f2d0ee57f6f13392e,2433
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

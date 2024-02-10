@@ -117,7 +117,11 @@ runFastaRegionInspector (_,inputfiles) = do
   processedConfig <- liftIO $ processConfigurationYaml decodedinputyaml
   if | processedConfig
         --Process the input yaml.
-     -> fastaRegionInspect decodedinputyaml
+     -> do _ <- showPrettyLog LogInfo
+                              (maxnumberconcthreads decodedinputyaml)
+                              callingfunction
+                              "Starting up fasta-region-inspector v0.3.0.0."
+           fastaRegionInspect decodedinputyaml
      | otherwise
      -> do --Print out failure message.
            _ <- showPrettyLog LogDebug
